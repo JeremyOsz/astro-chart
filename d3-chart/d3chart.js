@@ -9,6 +9,7 @@ let interpretations = {};
 let showDegreeMarkers = true;
 let showExtendedPlanets = true;
 let showAspectLines = true;
+let showPlanetLabels = true;
 
 // Chart dimensions
 let chartSize = 800;
@@ -491,136 +492,160 @@ function drawAspects(g, ascAngle) {
     .attr('fill', 'none')
     .attr('stroke', '#eee');
 
-  // DATA JOIN for aspect lines
-  const aspectSelection = g.selectAll('.aspect-line')
+  const aspectGroups = g.selectAll('.aspect-group')
     .data(aspects, d => `${d.planet1.planet}-${d.aspect}-${d.planet2.planet}`);
 
-  aspectSelection.enter()
-    .append('line')
-    .attr('class', 'aspect-line')
-    .attr('x1', d => {
-      const angle1 = (180 - (d.planet1.visualDegree - ascAngle)) * Math.PI / 180;
-      return Math.cos(angle1) * ASPECT_HUB_RADIUS;
-    })
-    .attr('y1', d => {
-      const angle1 = (180 - (d.planet1.visualDegree - ascAngle)) * Math.PI / 180;
-      return Math.sin(angle1) * ASPECT_HUB_RADIUS;
-    })
-    .attr('x2', d => {
-      const angle2 = (180 - (d.planet2.visualDegree - ascAngle)) * Math.PI / 180;
-      return Math.cos(angle2) * ASPECT_HUB_RADIUS;
-    })
-    .attr('y2', d => {
-      const angle2 = (180 - (d.planet2.visualDegree - ascAngle)) * Math.PI / 180;
-      return Math.sin(angle2) * ASPECT_HUB_RADIUS;
-    })
+  const aspectGroupsEnter = aspectGroups.enter()
+    .append('g')
+    .attr('class', 'aspect-group');
+
+  // Visible line
+  aspectGroupsEnter.append('line')
+    .style('pointer-events', 'none')
+    .attr('x1', d => Math.cos((180 - (d.planet1.visualDegree - ascAngle)) * Math.PI / 180) * ASPECT_HUB_RADIUS)
+    .attr('y1', d => Math.sin((180 - (d.planet1.visualDegree - ascAngle)) * Math.PI / 180) * ASPECT_HUB_RADIUS)
+    .attr('x2', d => Math.cos((180 - (d.planet2.visualDegree - ascAngle)) * Math.PI / 180) * ASPECT_HUB_RADIUS)
+    .attr('y2', d => Math.sin((180 - (d.planet2.visualDegree - ascAngle)) * Math.PI / 180) * ASPECT_HUB_RADIUS)
     .attr('stroke', d => d.color)
     .attr('stroke-width', d => isMobile ? d.weight * 0.7 : d.weight)
     .attr('stroke-dasharray', d => d.style === 'dotted' ? '1,3' : d.style === 'dashed' ? '4,4' : 'none');
 
-  aspectSelection.exit().remove();
+  // Invisible wide line for hover/click
+  aspectGroupsEnter.append('line')
+    .attr('class', 'aspect-line') // Keep original class for interactivity selector
+    .attr('x1', d => Math.cos((180 - (d.planet1.visualDegree - ascAngle)) * Math.PI / 180) * ASPECT_HUB_RADIUS)
+    .attr('y1', d => Math.sin((180 - (d.planet1.visualDegree - ascAngle)) * Math.PI / 180) * ASPECT_HUB_RADIUS)
+    .attr('x2', d => Math.cos((180 - (d.planet2.visualDegree - ascAngle)) * Math.PI / 180) * ASPECT_HUB_RADIUS)
+    .attr('y2', d => Math.sin((180 - (d.planet2.visualDegree - ascAngle)) * Math.PI / 180) * ASPECT_HUB_RADIUS)
+    .attr('stroke', 'transparent')
+    .attr('stroke-width', 15); // Wider hit area
+
+  aspectGroups.exit().remove();
 }
 
 // Draw planets
 function drawPlanets(g, ascAngle, planetsToDraw) {
-  // NOTE: Clustering logic has been moved to a separate function (`calculateVisualDegrees`)
-  // and is called from `createChart` to ensure visual degrees are set *before* aspects are drawn.
-
-  // DATA JOIN for planet glyphs
-  const planetSelection = g.selectAll('.planet-glyph')
+  // DATA JOIN for planet groups
+  const planetGroups = g.selectAll('.planet-group')
     .data(planetsToDraw, d => d.planet);
 
-  planetSelection.enter()
-    .append('text')
-    .attr('class', 'planet-glyph')
-    .attr('x', d => {
-      const displayAngle = (180 - (d.visualDegree - ascAngle));
-      const angleRad = displayAngle * Math.PI / 180;
-      return Math.cos(angleRad) * PLANET_RING_RADIUS;
-    })
-    .attr('y', d => {
-      const displayAngle = (180 - (d.visualDegree - ascAngle));
-      const angleRad = displayAngle * Math.PI / 180;
-      return Math.sin(angleRad) * PLANET_RING_RADIUS;
-    })
-    .attr('text-anchor', 'middle')
-    .attr('dominant-baseline', 'middle')
+  // EXIT old planets
+  planetGroups.exit().remove();
+
+  // ENTER new planet groups
+  const planetGroupsEnter = planetGroups.enter()
+    .append('g')
+    .attr('class', 'planet-group');
+
+  // Add visible glyph to new groups
+  planetGroupsEnter.append('text')
+    .attr('class', 'planet-glyph-visible')
+    .style('pointer-events', 'none')
     .attr('font-family', 'Noto Sans Symbols, Arial, sans-serif')
-    .attr('font-size', isMobile ? 12 : 28)
+    .attr('text-anchor', 'middle')
+    .attr('dominant-baseline', 'middle');
+
+  // Add invisible hit area to new groups
+  planetGroupsEnter.append('circle')
+    .attr('class', 'planet-glyph')
+    .attr('r', 20)
+    .attr('fill', 'transparent');
+  
+  // MERGE enter and update selections
+  const allPlanetGroups = planetGroupsEnter.merge(planetGroups);
+
+  // UPDATE all planet glyphs (position, content)
+  allPlanetGroups.select('.planet-glyph-visible')
+    .attr('x', d => Math.cos((180 - (d.visualDegree - ascAngle)) * Math.PI / 180) * PLANET_RING_RADIUS)
+    .attr('y', d => Math.sin((180 - (d.visualDegree - ascAngle)) * Math.PI / 180) * PLANET_RING_RADIUS)
+    .attr('font-size', isMobile ? 16 : 28)
     .attr('fill', d => d.isRetrograde ? '#e53935' : '#000')
     .text(d => planetSymbols[d.planet] || d.planet);
+  
+  // UPDATE all hit areas (position)
+  allPlanetGroups.select('.planet-glyph')
+    .attr('cx', d => Math.cos((180 - (d.visualDegree - ascAngle)) * Math.PI / 180) * PLANET_RING_RADIUS)
+    .attr('cy', d => Math.sin((180 - (d.visualDegree - ascAngle)) * Math.PI / 180) * PLANET_RING_RADIUS);
 
-  planetSelection.exit().remove();
+  // UPDATE labels and notches for all groups
+  allPlanetGroups.each(function(p) {
+    const group = d3.select(this);
+    
+    // Remove existing labels/notches before redrawing
+    group.selectAll('.planet-notch, .planet-label-group').remove();
+    
+    // Only draw if toggled on
+    if (showPlanetLabels) {
+      const displayAngle = (180 - (p.visualDegree - ascAngle));
+      const angleRad = displayAngle * Math.PI / 180;
+      
+      const labelX = Math.cos(angleRad) * LABEL_RADIUS;
+      const labelY = Math.sin(angleRad) * LABEL_RADIUS;
 
-  // Notches and labels (not interactive, so can remain as before)
-  planetsToDraw.forEach(p => {
-    const displayAngle = (180 - (p.visualDegree - ascAngle));
-    const angleRad = displayAngle * Math.PI / 180;
+      // Draw notch from outer zodiac to just before planet icon
+      group.append('line')
+        .attr('class', 'planet-notch')
+        .style('pointer-events', 'none')
+        .attr('x1', Math.cos(angleRad) * (ZODIAC_INNER_RADIUS))
+        .attr('y1', Math.sin(angleRad) * (ZODIAC_INNER_RADIUS))
+        .attr('x2', Math.cos(angleRad) * (PLANET_RING_RADIUS + 20))
+        .attr('y2', Math.sin(angleRad) * (PLANET_RING_RADIUS + 20))
+        .attr('stroke', '#000').attr('stroke-width', isMobile ? 1 : 2);
 
-    const labelX = Math.cos(angleRad) * LABEL_RADIUS;
-    const labelY = Math.sin(angleRad) * LABEL_RADIUS;
+      // Draw radial label block at its own radius
+      const labelGroup = group.append('g')
+        .attr('class', 'planet-label-group')
+        .style('pointer-events', 'none')
+        .attr('transform', `translate(${labelX}, ${labelY}) rotate(${displayAngle + 90})`);
 
-    // Draw notch from outer zodiac to just before planet icon
-    const notchStartX = Math.cos(angleRad) * (ZODIAC_INNER_RADIUS);
-    const notchStartY = Math.sin(angleRad) * (ZODIAC_INNER_RADIUS);
-    const notchEndX = Math.cos(angleRad) * (PLANET_RING_RADIUS + 20);
-    const notchEndY = Math.sin(angleRad) * (PLANET_RING_RADIUS + 20);
-    g.append('line')
-      .attr('x1', notchStartX).attr('y1', notchStartY)
-      .attr('x2', notchEndX).attr('y2', notchEndY)
-      .attr('stroke', '#000').attr('stroke-width', isMobile ? 1 : 2);
-
-    // Draw radial label block at its own radius
-    const labelGroup = g.append('g')
-      .attr('transform', `translate(${labelX}, ${labelY}) rotate(${displayAngle + 90})`);
-
-    if (isMobile) {
-      // Only show sign symbol and Rx
-      labelGroup.append('text')
-        .attr('text-anchor', 'middle')
-        .attr('y', 4)
-        .attr('font-family', 'Noto Sans Symbols, Arial, sans-serif')
-        .attr('font-size', 9)
-        .attr('fill', zodiacColors[p.sign])
-        .text(zodiacSymbols[p.sign]);
-      if (p.isRetrograde) {
+      if (isMobile) {
+        // Only show sign symbol and Rx
         labelGroup.append('text')
-          .attr('text-anchor', 'start')
-          .attr('x', 12)
-          .attr('y', 18)
-          .attr('font-size', 8)
-          .attr('fill', '#e53935')
-          .text('Rx');
-      }
-    } else {
-      // Desktop/tablet: show degree, sign, minute, Rx
-      labelGroup.append('text')
-        .attr('text-anchor', 'middle')
-        .attr('y', -10)
-        .attr('font-size', 12)
-        .attr('fill', '#444')
-        .text(p.degree);
-      labelGroup.append('text')
-        .attr('text-anchor', 'middle')
-        .attr('y', 4)
-        .attr('font-family', 'Noto Sans Symbols, Arial, sans-serif')
-        .attr('font-size', 12)
-        .attr('fill', zodiacColors[p.sign])
-        .text(zodiacSymbols[p.sign]);
-      labelGroup.append('text')
-        .attr('text-anchor', 'middle')
-        .attr('y', 18)
-        .attr('font-size', 11)
-        .attr('fill', '#777')
-        .text(p.minute.toString().padStart(2, '0'));
-      if (p.isRetrograde) {
+          .attr('text-anchor', 'middle')
+          .attr('y', 4)
+          .attr('font-family', 'Noto Sans Symbols, Arial, sans-serif')
+          .attr('font-size', 9)
+          .attr('fill', zodiacColors[p.sign])
+          .text(zodiacSymbols[p.sign]);
+        if (p.isRetrograde) {
+          labelGroup.append('text')
+            .attr('text-anchor', 'start')
+            .attr('x', 12)
+            .attr('y', 18)
+            .attr('font-size', 8)
+            .attr('fill', '#e53935')
+            .text('Rx');
+        }
+      } else {
+        // Desktop/tablet: show degree, sign, minute, Rx
         labelGroup.append('text')
-          .attr('text-anchor', 'start')
-          .attr('x', 12)
+          .attr('text-anchor', 'middle')
+          .attr('y', -10)
+          .attr('font-size', 12)
+          .attr('fill', '#444')
+          .text(p.degree);
+        labelGroup.append('text')
+          .attr('text-anchor', 'middle')
+          .attr('y', 4)
+          .attr('font-family', 'Noto Sans Symbols, Arial, sans-serif')
+          .attr('font-size', 12)
+          .attr('fill', zodiacColors[p.sign])
+          .text(zodiacSymbols[p.sign]);
+        labelGroup.append('text')
+          .attr('text-anchor', 'middle')
           .attr('y', 18)
-          .attr('font-size', 10)
-          .attr('fill', '#e53935')
-          .text('Rx');
+          .attr('font-size', 11)
+          .attr('fill', '#777')
+          .text(p.minute.toString().padStart(2, '0'));
+        if (p.isRetrograde) {
+          labelGroup.append('text')
+            .attr('text-anchor', 'start')
+            .attr('x', 12)
+            .attr('y', 18)
+            .attr('font-size', 10)
+            .attr('fill', '#e53935')
+            .text('Rx');
+        }
       }
     }
   });
@@ -834,6 +859,11 @@ function setupEventListeners() {
   
   document.getElementById('toggle-aspects').addEventListener('change', function(e) {
     showAspectLines = e.target.checked;
+    createChart();
+  });
+  
+  document.getElementById('toggle-labels').addEventListener('change', function(e) {
+    showPlanetLabels = e.target.checked;
     createChart();
   });
   
