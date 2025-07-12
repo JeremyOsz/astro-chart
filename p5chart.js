@@ -1,5 +1,5 @@
 // The astrological data as a multi-line string
-const data = `Sun,Sagittarius,17°09'
+let data = `Sun,Sagittarius,17°09'
 Moon,Capricorn,26°20'
 Mercury,Sagittarius,14°28',R
 Venus,Scorpio,4°00'
@@ -130,8 +130,107 @@ function setup() {
     redraw();
   });
   
+  // Add event listener for chart data update button
+  document.getElementById('update-chart-btn').addEventListener('click', updateChartData);
+  
   // Listen for window resize
   window.addEventListener('resize', handleResize);
+}
+
+function updateChartData() {
+  const textarea = document.getElementById('chart-data-input');
+  const button = document.getElementById('update-chart-btn');
+  
+  if (!textarea || !button) return;
+  
+  // Get the new data from textarea
+  const newData = textarea.value.trim();
+  
+  if (!newData) {
+    alert('Please enter chart data in the textarea.');
+    return;
+  }
+  
+  // Validate the data format
+  const lines = newData.split('\n').filter(line => line.trim() !== '');
+  let isValid = true;
+  let errorMessage = '';
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    
+    const parts = line.split(',');
+    if (parts.length < 3) {
+      isValid = false;
+      errorMessage = `Line ${i + 1}: Invalid format. Expected: Planet,Sign,Degree°Minute'[,R]`;
+      break;
+    }
+    
+    // Check degree format
+    const degreePart = parts[2].trim();
+    const degreeMatch = degreePart.match(/^(\d+)°(\d+)'$/);
+    if (!degreeMatch) {
+      isValid = false;
+      errorMessage = `Line ${i + 1}: Invalid degree format. Expected: Degree°Minute' (e.g., 17°09')`;
+      break;
+    }
+    
+    const degree = parseInt(degreeMatch[1]);
+    const minute = parseInt(degreeMatch[2]);
+    
+    if (degree < 0 || degree > 29 || minute < 0 || minute > 59) {
+      isValid = false;
+      errorMessage = `Line ${i + 1}: Invalid degree values. Degree must be 0-29, minute must be 0-59`;
+      break;
+    }
+    
+    // Check if sign is valid
+    const sign = parts[1].trim();
+    if (!zodiacSigns.includes(sign)) {
+      isValid = false;
+      errorMessage = `Line ${i + 1}: Invalid zodiac sign "${sign}". Valid signs: ${zodiacSigns.join(', ')}`;
+      break;
+    }
+  }
+  
+  if (!isValid) {
+    alert('Data validation error:\n' + errorMessage);
+    return;
+  }
+  
+  // Disable button during processing
+  button.disabled = true;
+  button.textContent = 'Updating...';
+  
+  try {
+    // Update the data
+    data = newData;
+    
+    // Clear existing data
+    chartData = [];
+    houseCusps = [];
+    aspects = [];
+    
+    // Re-parse and regenerate
+    parseDataAndGenerateHouses();
+    calculateAspects();
+    
+    // Redraw the chart
+    redraw();
+    
+    // Show success message
+    setTimeout(() => {
+      alert('Chart updated successfully!');
+    }, 100);
+    
+  } catch (error) {
+    alert('Error updating chart: ' + error.message);
+  } finally {
+    // Re-enable button
+    button.disabled = false;
+    button.textContent = 'Update Chart';
+  }
 }
 
 function detectDeviceType() {

@@ -251,12 +251,125 @@
                 overflow-y: auto;
             }
         }
+        
+        /* Data input section styles */
+        .data-input-section {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        .data-input-section h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.1rem;
+            color: #333;
+        }
+        
+        .data-input-section textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+        
+        .data-input-section textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+        }
+        
+        .data-input-section button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        .data-input-section button:hover {
+            background: #45a049;
+        }
+        
+        .data-input-section button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .data-input-section .example-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 10px;
+            font-style: italic;
+        }
+        
+        /* Mobile adjustments for data input */
+        @media (max-width: 767px) {
+            .data-input-section {
+                margin: 0 10px 15px 10px;
+                padding: 15px;
+            }
+            
+            .data-input-section textarea {
+                min-height: 100px;
+                font-size: 12px;
+            }
+            
+            .data-input-section button {
+                width: 100%;
+                padding: 12px;
+                font-size: 16px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="chart-section">
             <h1>Astrological Chart</h1>
+            <div class="data-input-section">
+                <h3>Chart Data Input</h3>
+                <textarea id="chart-data-input" placeholder="Paste your astrological data here in the format:
+Sun,Sagittarius,17°09'
+Moon,Capricorn,26°20'
+Mercury,Sagittarius,14°28',R
+Venus,Scorpio,4°00'
+ASC,Sagittarius,1°40'
+MC,Leo,10°14'
+...">Sun,Sagittarius,17°09'
+Moon,Capricorn,26°20'
+Mercury,Sagittarius,14°28',R
+Venus,Scorpio,4°00'
+Mars,Sagittarius,7°36'
+Jupiter,Virgo,13°55',R
+Saturn,Aquarius,3°32'
+Uranus,Capricorn,12°23'
+Neptune,Capricorn,15°24'
+Pluto,Scorpio,21°20'
+Node,Capricorn,10°59',R
+Lilith,Capricorn,25°14'
+Chiron,Leo,9°20',R
+Fortune,Libra,22°29'
+Vertex,Aries,29°44'
+ASC,Sagittarius,1°40'
+MC,Leo,10°14'</textarea>
+                <button id="update-chart-btn">Update Chart</button>
+                <div class="example-text">
+                    Format: Planet,Sign,Degree°Minute'[,R for retrograde]<br>
+                    Example: Sun,Sagittarius,17°09' or Mercury,Sagittarius,14°28',R
+                </div>
+            </div>
             <div id="chart-canvas"></div>
         </div>
         <div class="legend-section">
