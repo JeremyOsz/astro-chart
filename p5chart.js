@@ -25,6 +25,12 @@ let showAspectLines = true;
 // --- Data Structures ---
 let chartData = [], houseCusps = [], aspects = [], buttons = [];
 
+// --- Responsive Variables ---
+let canvasSize = 800;
+let isMobile = false;
+let isTablet = false;
+let scaleFactor = 1;
+
 const zodiacSigns = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
 // Unicode zodiac symbols that render as proper symbols in most fonts
 const zodiacSymbols = {
@@ -74,20 +80,32 @@ const aspectDefs = {
 };
 const coreAspectBodies = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto", "ASC"];
 
-// --- Layout Constants ---
-const ZODIAC_OUTER_RADIUS = 350;
-const ZODIAC_INNER_RADIUS = 300;
-const PLANET_RING_RADIUS = 270;
-const LABEL_RADIUS = 230;
-const HOUSE_LINE_INNER_RADIUS = 170;
-const HOUSE_NUM_RADIUS = 180;
-const ASPECT_HUB_RADIUS = 170;
+// --- Layout Constants (will be scaled dynamically) ---
+let ZODIAC_OUTER_RADIUS = 350;
+let ZODIAC_INNER_RADIUS = 300;
+let PLANET_RING_RADIUS = 270;
+let LABEL_RADIUS = 230;
+let HOUSE_LINE_INNER_RADIUS = 170;
+let HOUSE_NUM_RADIUS = 180;
+let ASPECT_HUB_RADIUS = 170;
 const CLUSTER_THRESHOLD = 12;
 
 function setup() {
-  const canvas = createCanvas(800, 800);
+  // Detect device type and set responsive parameters
+  detectDeviceType();
+  setResponsiveParameters();
+  
+  const canvas = createCanvas(canvasSize, canvasSize);
   const chartDiv = document.getElementById('chart-canvas');
   if (chartDiv) chartDiv.appendChild(canvas.elt);
+  
+  // Add touch support for mobile
+  if (isMobile) {
+    canvas.touchStarted(touchStarted);
+    canvas.touchMoved(touchMoved);
+    canvas.touchEnded(touchEnded);
+  }
+  
   angleMode(DEGREES);
   textFont('Noto Sans Symbols');
   parseDataAndGenerateHouses();
@@ -111,6 +129,76 @@ function setup() {
     showAspectLines = e.target.checked;
     redraw();
   });
+  
+  // Listen for window resize
+  window.addEventListener('resize', handleResize);
+}
+
+function detectDeviceType() {
+  const width = window.innerWidth;
+  isMobile = width < 768;
+  isTablet = width >= 768 && width < 1024;
+}
+
+function setResponsiveParameters() {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  
+  // Set canvas size based on device
+  if (isMobile) {
+    // For mobile, use the smaller dimension to ensure it fits
+    const maxSize = Math.min(width - 40, height - 200); // Account for padding and legend
+    canvasSize = Math.max(300, Math.min(600, maxSize)); // Min 300, max 600
+    scaleFactor = canvasSize / 800; // Base size is 800
+  } else if (isTablet) {
+    canvasSize = Math.min(700, width - 100);
+    scaleFactor = canvasSize / 800;
+  } else {
+    canvasSize = 800;
+    scaleFactor = 1;
+  }
+  
+  // Scale all radius constants
+  ZODIAC_OUTER_RADIUS = 350 * scaleFactor;
+  ZODIAC_INNER_RADIUS = 300 * scaleFactor;
+  PLANET_RING_RADIUS = 270 * scaleFactor;
+  LABEL_RADIUS = 230 * scaleFactor;
+  HOUSE_LINE_INNER_RADIUS = 170 * scaleFactor;
+  HOUSE_NUM_RADIUS = 180 * scaleFactor;
+  ASPECT_HUB_RADIUS = 170 * scaleFactor;
+}
+
+function handleResize() {
+  detectDeviceType();
+  setResponsiveParameters();
+  
+  // Resize canvas
+  resizeCanvas(canvasSize, canvasSize);
+  
+  // Redraw
+  redraw();
+}
+
+// Touch event handlers for mobile
+function touchStarted() {
+  // Convert touch to mouse position for existing logic
+  if (touches.length > 0) {
+    mouseX = touches[0].x;
+    mouseY = touches[0].y;
+  }
+  return false; // Prevent default behavior
+}
+
+function touchMoved() {
+  if (touches.length > 0) {
+    mouseX = touches[0].x;
+    mouseY = touches[0].y;
+  }
+  return false;
+}
+
+function touchEnded() {
+  return false;
 }
 
 function draw() {
@@ -200,12 +288,12 @@ function drawZodiacWheel() {
   ellipse(0, 0, ZODIAC_INNER_RADIUS * 2);
   for (let i = 0; i < 360; i++) {
     const angle = 180 - (i - ascDegree); let startRadius = ZODIAC_INNER_RADIUS;
-    if (i % 30 === 0) { strokeWeight(1.5); stroke(0); }
+    if (i % 30 === 0) { strokeWeight(1.5 * scaleFactor); stroke(0); }
     else if (showDegreeMarkers) {
-        strokeWeight(0.5); stroke(200);
-        if (i % 10 === 0) { strokeWeight(1); stroke(100); startRadius = ZODIAC_INNER_RADIUS + 20; }
-        else if (i % 5 === 0) { startRadius = ZODIAC_INNER_RADIUS + 30; }
-        else { startRadius = ZODIAC_INNER_RADIUS + 40; }
+        strokeWeight(0.5 * scaleFactor); stroke(200);
+        if (i % 10 === 0) { strokeWeight(1 * scaleFactor); stroke(100); startRadius = ZODIAC_INNER_RADIUS + 20 * scaleFactor; }
+        else if (i % 5 === 0) { startRadius = ZODIAC_INNER_RADIUS + 30 * scaleFactor; }
+        else { startRadius = ZODIAC_INNER_RADIUS + 40 * scaleFactor; }
     } else continue;
     line(cos(angle) * ZODIAC_INNER_RADIUS, sin(angle) * ZODIAC_INNER_RADIUS, cos(angle) * startRadius, sin(angle) * startRadius);
   }
@@ -213,8 +301,8 @@ function drawZodiacWheel() {
   for (let i = 0; i < 12; i++) {
     const signMidpointDegree = (i * 30) + 15;
     const angle = 180 - (signMidpointDegree - ascDegree);
-    fill(zodiacColors[zodiacSigns[i]]); noStroke(); textSize(24); textAlign(CENTER, CENTER);
-    text(zodiacSymbols[zodiacSigns[i]], cos(angle) * (ZODIAC_INNER_RADIUS + 25), sin(angle) * (ZODIAC_INNER_RADIUS + 25));
+    fill(zodiacColors[zodiacSigns[i]]); noStroke(); textSize(24 * scaleFactor); textAlign(CENTER, CENTER);
+    text(zodiacSymbols[zodiacSigns[i]], cos(angle) * (ZODIAC_INNER_RADIUS + 25 * scaleFactor), sin(angle) * (ZODIAC_INNER_RADIUS + 25 * scaleFactor));
   }
 }
 
@@ -224,14 +312,14 @@ function drawHouseLinesAndNumbers() {
     const ascDegree = asc.absoluteDegree;
     const mc = chartData.find(p => p.name === 'MC');
     const axes = [asc, mc, chartData.find(p=>p.name==='DSC'), chartData.find(p=>p.name==='IC')];
-    const HOUSE_LINE_CENTER_GAP = 170; // px, gap at center
+    const HOUSE_LINE_CENTER_GAP = 170 * scaleFactor; // px, gap at center
     // Draw all 12 house cusps as spokes (with thick outer segment only on rim)
     houseCusps.forEach(cusp => {
         const angle = 180 - (cusp.absoluteDegree - ascDegree);
         const isAxisCusp = axes.some(ax => ax.absoluteDegree % 360 === cusp.absoluteDegree % 360);
         // Thin segment: from small radius to just before outer rim
         stroke(isAxisCusp ? 150 : 220);
-        strokeWeight(1);
+        strokeWeight(1 * scaleFactor);
         const thinStartRadius = HOUSE_LINE_CENTER_GAP;
         const thinEndRadius = ZODIAC_INNER_RADIUS;
         const thinStartX = cos(angle) * thinStartRadius;
@@ -241,7 +329,7 @@ function drawHouseLinesAndNumbers() {
         line(thinStartX, thinStartY, thinEndX, thinEndY);
         // Thick segment: only on outermost 10%
         stroke(isAxisCusp ? 80 : 120);
-        strokeWeight(isAxisCusp ? 4 : 2.5);
+        strokeWeight(isAxisCusp ? 4 * scaleFactor : 2.5 * scaleFactor);
         const thickStartX = cos(angle) * thinEndRadius;
         const thickStartY = sin(angle) * thinEndRadius;
         const thickEndX = cos(angle) * ZODIAC_OUTER_RADIUS;
@@ -253,14 +341,14 @@ function drawHouseLinesAndNumbers() {
     axes.forEach(point => {
         if(point) {
             const angle = 180 - (point.absoluteDegree - ascDegree);
-            stroke(0); strokeWeight(2.5);
+            stroke(0); strokeWeight(2.5 * scaleFactor);
             const startX = cos(angle) * HOUSE_LINE_INNER_RADIUS;
             const startY = sin(angle) * HOUSE_LINE_INNER_RADIUS;
             const endX = cos(angle) * ZODIAC_INNER_RADIUS;
             const endY = sin(angle) * ZODIAC_INNER_RADIUS;
             line(startX, startY, endX, endY);
-            fill(0); noStroke(); textSize(12);
-            text(planetSymbols[point.name], cos(angle) * (ZODIAC_INNER_RADIUS - 10), sin(angle) * (ZODIAC_INNER_RADIUS - 10));
+            fill(0); noStroke(); textSize(12 * scaleFactor);
+            text(planetSymbols[point.name], cos(angle) * (ZODIAC_INNER_RADIUS - 10 * scaleFactor), sin(angle) * (ZODIAC_INNER_RADIUS - 10 * scaleFactor));
         }
     });
     
@@ -269,7 +357,7 @@ function drawHouseLinesAndNumbers() {
         const midpointAngle = 180 - ((cusp.absoluteDegree + 15) - ascDegree);
         const x = cos(midpointAngle) * HOUSE_NUM_RADIUS;
         const y = sin(midpointAngle) * HOUSE_NUM_RADIUS;
-        fill(200); noStroke(); textSize(14);
+        fill(200); noStroke(); textSize(14 * scaleFactor);
         text(cusp.house, x, y);
     });
 }
@@ -280,7 +368,7 @@ function drawAspects() {
     const ascDegree = asc.absoluteDegree;
     // Draw faint aspect hub circle
     stroke(200, 80); // light gray, semi-transparent
-    strokeWeight(1);
+    strokeWeight(1 * scaleFactor);
     noFill();
     ellipse(0, 0, ASPECT_HUB_RADIUS * 2);
     // Draw aspect lines
@@ -289,11 +377,11 @@ function drawAspects() {
         const angle2 = 180 - (aspect.p2.visualDegree - ascDegree);
         const hubX1 = cos(angle1) * ASPECT_HUB_RADIUS; const hubY1 = sin(angle1) * ASPECT_HUB_RADIUS;
         const hubX2 = cos(angle2) * ASPECT_HUB_RADIUS; const hubY2 = sin(angle2) * ASPECT_HUB_RADIUS;
-        stroke(aspect.color); strokeWeight(aspect.weight);
-        if (aspect.style === 'dotted') drawDottedLine(hubX1, hubY1, hubX2, hubY2, 3, 3);
+        stroke(aspect.color); strokeWeight(aspect.weight * scaleFactor);
+        if (aspect.style === 'dotted') drawDottedLine(hubX1, hubY1, hubX2, hubY2, 3 * scaleFactor, 3 * scaleFactor);
         else line(hubX1, hubY1, hubX2, hubY2);
         noStroke(); fill(aspect.color);
-        rectMode(CENTER); rect(hubX1, hubY1, 6, 6); rect(hubX2, hubY2, 6, 6); rectMode(CORNER);
+        rectMode(CENTER); rect(hubX1, hubY1, 6 * scaleFactor, 6 * scaleFactor); rect(hubX2, hubY2, 6 * scaleFactor, 6 * scaleFactor); rectMode(CORNER);
     });
 }
 
@@ -342,24 +430,24 @@ function drawPlanets() {
     const labelX = cos(angle) * LABEL_RADIUS; const labelY = sin(angle) * LABEL_RADIUS;
 
     // Draw notch before planet symbol
-    stroke(100); strokeWeight(2);
+    stroke(100); strokeWeight(2 * scaleFactor);
     const notchStartX = cos(angle) * ZODIAC_INNER_RADIUS;
     const notchStartY = sin(angle) * ZODIAC_INNER_RADIUS;
     const notchEndX = cos(angle) * (ZODIAC_INNER_RADIUS + (PLANET_RING_RADIUS - ZODIAC_INNER_RADIUS) / 2);
     const notchEndY = sin(angle) * (ZODIAC_INNER_RADIUS + (PLANET_RING_RADIUS - ZODIAC_INNER_RADIUS) / 2);
     line(notchStartX, notchStartY, notchEndX, notchEndY);
 
-    fill(p.isRetrograde ? '#FF0000' : '#000'); noStroke(); textSize(28); text(planetSymbols[p.name], iconX, iconY);
+    fill(p.isRetrograde ? '#FF0000' : '#000'); noStroke(); textSize(28 * scaleFactor); text(planetSymbols[p.name], iconX, iconY);
     
     // Draw label block aligned along the radial line (outward-in)
     push();
     translate(labelX, labelY);
     rotate(angle + 90); // Rotate to align with radial direction
     textAlign(CENTER, CENTER);
-    fill(0); textSize(12); text(p.degree, 0, -10);
-    fill(zodiacColors[p.sign]); textSize(12); text(zodiacSymbols[p.sign], 0, 4);
-    fill(100); textSize(11); text(nf(p.minute, 2), 0, 18);
-    if (p.isRetrograde) { fill('#FF0000'); textSize(10); text('Rx', 20, 18); }
+    fill(0); textSize(12 * scaleFactor); text(p.degree, 0, -10 * scaleFactor);
+    fill(zodiacColors[p.sign]); textSize(12 * scaleFactor); text(zodiacSymbols[p.sign], 0, 4 * scaleFactor);
+    fill(100); textSize(11 * scaleFactor); text(nf(p.minute, 2), 0, 18 * scaleFactor);
+    if (p.isRetrograde) { fill('#FF0000'); textSize(10 * scaleFactor); text('Rx', 20 * scaleFactor, 18 * scaleFactor); }
     pop();
   });
 }
@@ -383,13 +471,16 @@ function handleInteractivity() {
     let hoveredOnPlanet = false;
     let hoveredOnAspect = false;
     
+    // Adjust hover threshold based on device
+    const hoverThreshold = isMobile ? 20 * scaleFactor : 15 * scaleFactor;
+    
     // Check for planet hover
     activePlanets.forEach(p => {
         let radius = PLANET_RING_RADIUS;
-        if (['ASC', 'MC', 'DSC', 'IC'].includes(p.name)) { radius = ZODIAC_INNER_RADIUS - 10; }
+        if (['ASC', 'MC', 'DSC', 'IC'].includes(p.name)) { radius = ZODIAC_INNER_RADIUS - 10 * scaleFactor; }
         const angle = 180 - (p.visualDegree - ascDegree);
         const x = cos(angle) * radius; const y = sin(angle) * radius;
-        if (dist(mouseX - width / 2, mouseY - height / 2, x, y) < 15) {
+        if (dist(mouseX - width / 2, mouseY - height / 2, x, y) < hoverThreshold) {
             cursor('pointer'); hoveredOnPlanet = true;
             let info = `${p.name} at ${p.degree}° ${nf(p.minute, 2)}' ${p.sign}`;
             let interpretation = '';
@@ -410,13 +501,13 @@ function handleInteractivity() {
                 tooltipText += '\n' + interpretation;
             }
             const boxX = mouseX - width / 2 + 15; const boxY = mouseY - height / 2;
-            const maxWidth = 400;
-            const lineHeight = 20;
-            const padding = 10;
-            textSize(12);
+            const maxWidth = isMobile ? 300 : 400;
+            const lineHeight = 20 * scaleFactor;
+            const padding = 10 * scaleFactor;
+            textSize(12 * scaleFactor);
             // Use the same wordWrap as for aspects
             function wordWrap(text, maxWidth) {
-                textSize(12);
+                textSize(12 * scaleFactor);
                 const words = text.split(' ');
                 const lines = [];
                 let currentLine = '';
@@ -461,15 +552,15 @@ function handleInteractivity() {
             }
             const allLines = [];
             tooltipText.split('\n').forEach(paragraph => {
-                allLines.push(...wordWrap(paragraph, maxWidth - 20));
+                allLines.push(...wordWrap(paragraph, maxWidth - 20 * scaleFactor));
             });
             const boxWidth = maxWidth;
             const boxHeight = allLines.length * lineHeight + padding;
-            fill(255, 255, 240, 230); stroke(0); strokeWeight(1);
-            rect(boxX, boxY, boxWidth, boxHeight, 5);
-            fill(0); noStroke(); textAlign(LEFT, TOP); textSize(12);
+            fill(255, 255, 240, 230); stroke(0); strokeWeight(1 * scaleFactor);
+            rect(boxX, boxY, boxWidth, boxHeight, 5 * scaleFactor);
+            fill(0); noStroke(); textAlign(LEFT, TOP); textSize(12 * scaleFactor);
             allLines.forEach((line, index) => {
-                text(line, boxX + 10, boxY + 5 + index * lineHeight);
+                text(line, boxX + 10 * scaleFactor, boxY + 5 * scaleFactor + index * lineHeight);
             });
         }
     });
@@ -514,7 +605,7 @@ function handleInteractivity() {
             
             const distance = dist(mouseXRel, mouseYRel, xx, yy);
             
-            if (distance < 8) { // Hover threshold for aspect lines
+            if (distance < 8 * scaleFactor) { // Hover threshold for aspect lines
                 cursor('pointer');
                 hoveredOnAspect = true;
                 
@@ -544,14 +635,14 @@ function handleInteractivity() {
                 
                 const boxX = mouseX - width / 2 + 15;
                 const boxY = mouseY - height / 2;
-                const maxWidth = 400; // Maximum width for tooltip
-                const lineHeight = 20;
-                const padding = 10;
+                const maxWidth = isMobile ? 300 : 400; // Maximum width for tooltip
+                const lineHeight = 20 * scaleFactor;
+                const padding = 10 * scaleFactor;
                 
-                textSize(12); // Ensure correct text size for width calculations
+                textSize(12 * scaleFactor); // Ensure correct text size for width calculations
                 // Word wrap function - less aggressive, with orphan control
                 function wordWrap(text, maxWidth) {
-                    textSize(12); // Ensure correct text size for textWidth
+                    textSize(12 * scaleFactor); // Ensure correct text size for textWidth
                     const words = text.split(' ');
                     const lines = [];
                     let currentLine = '';
@@ -602,7 +693,7 @@ function handleInteractivity() {
                 // Split into lines with word wrapping
                 const allLines = [];
                 tooltipText.split('\n').forEach(paragraph => {
-                    allLines.push(...wordWrap(paragraph, maxWidth - 20));
+                    allLines.push(...wordWrap(paragraph, maxWidth - 20 * scaleFactor));
                 });
                 
                 const boxWidth = maxWidth;
@@ -610,15 +701,15 @@ function handleInteractivity() {
                 
                 fill(255, 255, 240, 230);
                 stroke(0);
-                strokeWeight(1);
-                rect(boxX, boxY, boxWidth, boxHeight, 5);
+                strokeWeight(1 * scaleFactor);
+                rect(boxX, boxY, boxWidth, boxHeight, 5 * scaleFactor);
                 fill(0);
                 noStroke();
                 textAlign(LEFT, TOP);
-                textSize(12);
+                textSize(12 * scaleFactor);
                 
                 allLines.forEach((line, index) => {
-                    text(line, boxX + 10, boxY + 5 + index * lineHeight);
+                    text(line, boxX + 10 * scaleFactor, boxY + 5 * scaleFactor + index * lineHeight);
                 });
             }
         });

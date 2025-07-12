@@ -5,76 +5,251 @@
     <script src="https://cdn.jsdelivr.net/npm/p5@1.11.8/lib/addons/p5.sound.min.js"></script>
     <link rel="stylesheet" type="text/css" href="style.css">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Astrological Chart with SVG Symbols</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Symbols:wght@400;700&display=swap');
+        
+        * {
+            box-sizing: border-box;
+        }
+        
         body {
             margin: 0;
-            padding: 20px;
+            padding: 10px;
             background-color: #f0f0f0;
             font-family: Arial, sans-serif;
+            overflow-x: hidden;
         }
+        
         .container {
             display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            gap: 32px;
+            flex-direction: column;
             max-width: 1200px;
             margin: 0 auto;
+            gap: 20px;
         }
+        
         .chart-section {
             text-align: center;
-            flex-shrink: 0;
+            order: 1;
         }
+        
         .legend-section {
-            min-width: 300px;
-            max-width: 350px;
             background: #fff;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.08);
-            padding: 24px 18px;
-            font-size: 15px;
-            flex-shrink: 0;
-            align-self: flex-start;
+            padding: 20px;
+            font-size: 14px;
+            order: 2;
         }
+        
         h1 {
             color: #333;
-            margin-bottom: 20px;
+            margin: 0 0 15px 0;
+            font-size: 1.5rem;
         }
+        
         h2 {
-            margin-top: 0;
+            margin: 0 0 15px 0;
+            font-size: 1.2rem;
         }
+        
         canvas {
             border: 2px solid #333;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            max-width: 100%;
+            height: auto;
         }
+        
         .legend-symbol {
             font-family: 'Noto Sans Symbols', Arial, sans-serif;
-            font-size: 1.3em;
+            font-size: 1.2em;
             margin-right: 0.5em;
         }
+        
         .legend-color {
             display: inline-block;
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
             border-radius: 3px;
             margin-right: 0.5em;
             vertical-align: middle;
         }
+        
         .aspect-line {
             display: inline-block;
-            width: 24px;
-            height: 4px;
+            width: 20px;
+            height: 3px;
             vertical-align: middle;
             margin-right: 0.5em;
         }
+        
         .legend-section label {
             display: block;
-            margin-bottom: 6px;
-            font-size: 15px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .legend-section input[type="checkbox"] {
+            margin-right: 8px;
+            transform: scale(1.2);
+        }
+        
+        .legend-section ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 10px 0;
+        }
+        
+        .legend-section li {
+            margin-bottom: 4px;
+            font-size: 13px;
+        }
+        
+        .legend-section hr {
+            margin: 20px 0;
+            border: none;
+            border-top: 1px solid #ddd;
+        }
+        
+        .legend-section b {
+            font-size: 14px;
+            color: #333;
+        }
+        
+        /* Tablet and larger screens */
+        @media (min-width: 768px) {
+            body {
+                padding: 20px;
+            }
+            
+            .container {
+                flex-direction: row;
+                align-items: flex-start;
+                gap: 32px;
+            }
+            
+            .chart-section {
+                flex-shrink: 0;
+            }
+            
+            .legend-section {
+                min-width: 280px;
+                max-width: 320px;
+                flex-shrink: 0;
+                align-self: flex-start;
+                font-size: 15px;
+                padding: 24px 18px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+                margin-bottom: 20px;
+            }
+            
+            h2 {
+                font-size: 1.4rem;
+            }
+            
+            .legend-section label {
+                font-size: 15px;
+            }
+            
+            .legend-section li {
+                font-size: 14px;
+            }
+            
+            .legend-section b {
+                font-size: 15px;
+            }
+        }
+        
+        /* Large screens */
+        @media (min-width: 1024px) {
+            .legend-section {
+                min-width: 300px;
+                max-width: 350px;
+            }
+        }
+        
+        /* Mobile-specific improvements */
+        @media (max-width: 767px) {
+            .legend-section {
+                margin: 0 10px;
+            }
+            
+            .legend-section ul {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 8px;
+            }
+            
+            .legend-section li {
+                font-size: 12px;
+            }
+            
+            .legend-section b {
+                font-size: 13px;
+            }
+            
+            /* Make checkboxes easier to tap on mobile */
+            .legend-section label {
+                padding: 8px 0;
+                min-height: 44px;
+                display: flex;
+                align-items: center;
+            }
+            
+            .legend-section input[type="checkbox"] {
+                transform: scale(1.5);
+                margin-right: 12px;
+            }
+        }
+        
+        /* Very small screens */
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+            
+            .legend-section {
+                margin: 0 5px;
+                padding: 15px;
+            }
+            
+            .legend-section ul {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 1.3rem;
+            }
+            
+            h2 {
+                font-size: 1.1rem;
+            }
+        }
+        
+        /* Landscape orientation on mobile */
+        @media (max-width: 767px) and (orientation: landscape) {
+            .container {
+                flex-direction: row;
+                gap: 15px;
+            }
+            
+            .chart-section {
+                flex: 1;
+            }
+            
+            .legend-section {
+                flex: 0 0 200px;
+                max-height: 80vh;
+                overflow-y: auto;
+            }
         }
     </style>
 </head>
@@ -92,7 +267,7 @@
             <hr>
             <h2>Legend</h2>
             <b>Planets</b>
-            <ul style="list-style:none;padding-left:0;">
+            <ul>
                 <li><span class="legend-symbol">☉</span> Sun</li>
                 <li><span class="legend-symbol">☽</span> Moon</li>
                 <li><span class="legend-symbol">☿</span> Mercury</li>
@@ -106,7 +281,7 @@
             </ul>
             <div style="margin-top:6px;font-size:13px;">
                 <b>Extended Points:</b>
-                <ul style="list-style:none;padding-left:0;">
+                <ul>
                     <li><span class="legend-symbol">☊</span> Node</li>
                     <li><span class="legend-symbol">⚸</span> Lilith</li>
                     <li><span class="legend-symbol">⚷</span> Chiron</li>
@@ -116,7 +291,7 @@
             </div>
             <div style="margin-top:16px;">
                 <b>Angles</b>
-                <ul style="list-style:none;padding-left:0;">
+                <ul>
                     <li><span class="legend-symbol">Asc</span> ASC</li>
                     <li><span class="legend-symbol">MC</span> MC</li>
                     <li><span class="legend-symbol">Dsc</span> DSC</li>
@@ -125,7 +300,7 @@
             </div>
             <div style="margin-top:16px;">
                 <b>Zodiac Signs</b>
-                <ul style="list-style:none;padding-left:0;">
+                <ul>
                     <li><span class="legend-symbol" style="color:#e53935">♈</span> Aries</li>
                     <li><span class="legend-symbol" style="color:#43a047">♉</span> Taurus</li>
                     <li><span class="legend-symbol" style="color:#fbc02d">♊</span> Gemini</li>
@@ -142,7 +317,7 @@
             </div>
             <div style="margin-top:16px;">
                 <b>Elements</b>
-                <ul style="list-style:none;padding-left:0;">
+                <ul>
                     <li><span class="legend-color" style="background:#e53935"></span> Fire <span style="color:#888;font-size:13px;">(Aries, Leo, Sagittarius)</span></li>
                     <li><span class="legend-color" style="background:#43a047"></span> Earth <span style="color:#888;font-size:13px;">(Taurus, Virgo, Capricorn)</span></li>
                     <li><span class="legend-color" style="background:#fbc02d"></span> Air <span style="color:#888;font-size:13px;">(Gemini, Libra, Aquarius)</span></li>
@@ -151,7 +326,7 @@
             </div>
             <div style="margin-top:16px;">
                 <b>Major Aspects</b>
-                <ul style="list-style:none;padding-left:0;">
+                <ul>
                     <li><span class="aspect-line" style="background:#228B22;border-bottom:2.5px solid #228B22;"></span> Conjunction</li>
                     <li><span class="aspect-line" style="background:#FF0000;border-bottom:2.5px solid #FF0000;"></span> Opposition</li>
                     <li><span class="aspect-line" style="background:#FF0000;border-bottom:2.5px solid #FF0000;"></span> Square</li>
