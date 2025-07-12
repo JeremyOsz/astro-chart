@@ -700,49 +700,59 @@ function addInteractivity(g, ascAngle) {
     tooltip.style('left', left + 'px').style('top', top + 'px');
   }
 
-  let tooltipVisible = false;
+  // --- Combined hover and click/pin logic ---
+  let tooltipPinned = false;
+  let pinnedData = null; // Store the data of the pinned element
 
-  // Planet tooltips on click/tap
+  function handleMouseOver(event, d) {
+    if (tooltipPinned) return; // Don't show hover tooltip if one is pinned
+    const interpretation = d.planet ? getPlanetInterpretation(d) : getAspectInterpretation(d);
+    showTooltip(event, interpretation, tooltip, positionTooltip);
+  }
+
+  function handleMouseOut() {
+    if (tooltipPinned) return; // Don't hide if pinned
+    hideTooltip(tooltip);
+  }
+
+  function handleClick(event, d) {
+    event.stopPropagation();
+    const isSameElement = (pinnedData === d);
+
+    if (tooltipPinned && isSameElement) {
+      // Unpin if clicking the same element again
+      tooltipPinned = false;
+      pinnedData = null;
+      hideTooltip(tooltip);
+    } else {
+      // Pin the tooltip for this element
+      tooltipPinned = true;
+      pinnedData = d;
+      const interpretation = d.planet ? getPlanetInterpretation(d) : getAspectInterpretation(d);
+      showTooltip(event, interpretation, tooltip, positionTooltip);
+    }
+  }
+
+  // Planet tooltips
   g.selectAll('.planet-glyph')
     .style('cursor', 'pointer')
-    .on('click', function(event, d) {
-      event.stopPropagation();
-      const wasVisible = tooltip.style('opacity') === '1' && tooltip.datum() === d;
-      
-      if (wasVisible) {
-        hideTooltip(tooltip);
-        tooltipVisible = false;
-      } else {
-        const interpretation = getPlanetInterpretation(d);
-        tooltip.datum(d); // Store data to check for same-element clicks
-        showTooltip(event, interpretation, tooltip, positionTooltip);
-        tooltipVisible = true;
-      }
-    });
+    .on('mouseover', handleMouseOver)
+    .on('mouseout', handleMouseOut)
+    .on('click', handleClick);
 
-  // Aspect tooltips on click/tap
+  // Aspect tooltips
   g.selectAll('.aspect-line')
     .style('cursor', 'pointer')
-    .on('click', function(event, d) {
-      event.stopPropagation();
-      const wasVisible = tooltip.style('opacity') === '1' && tooltip.datum() === d;
-      
-      if (wasVisible) {
-        hideTooltip(tooltip);
-        tooltipVisible = false;
-      } else {
-        const interpretation = getAspectInterpretation(d);
-        tooltip.datum(d); // Store data
-        showTooltip(event, interpretation, tooltip, positionTooltip);
-        tooltipVisible = true;
-      }
-    });
+    .on('mouseover', handleMouseOver)
+    .on('mouseout', handleMouseOut)
+    .on('click', handleClick);
 
-  // Hide tooltip when clicking the chart background
+  // Hide pinned tooltip when clicking the chart background
   d3.select('#chart-container svg').on('click', function() {
-    if (tooltipVisible) {
+    if (tooltipPinned) {
+      tooltipPinned = false;
+      pinnedData = null;
       hideTooltip(tooltip);
-      tooltipVisible = false;
     }
   });
 }
