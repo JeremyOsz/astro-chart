@@ -10,9 +10,84 @@
 </head>
 <body>
     <div class="container">
+        <div class="birth-chart-section">
+            <h2>Birth Chart Calculator (not yet working)</h2>
+            <p>Enter your birth details to generate an astrological chart</p>
+            
+            <div class="birth-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="birth-date">Date of Birth:</label>
+                        <input type="date" id="birth-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="birth-time">Time of Birth:</label>
+                        <input type="time" id="birth-time" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="birth-latitude">Latitude:</label>
+                        <input type="number" id="birth-latitude" step="0.000001" placeholder="e.g., 40.7128" required>
+                        <small>Positive for North, negative for South</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="birth-longitude">Longitude:</label>
+                        <input type="number" id="birth-longitude" step="0.000001" placeholder="e.g., -74.0060" required>
+                        <small>Positive for East, negative for West</small>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="birth-place">Place of Birth:</label>
+                        <input type="text" id="birth-place" placeholder="e.g., New York, NY" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="timezone-offset">Timezone:</label>
+                        <select id="timezone-offset">
+                            <option value="-12">UTC-12</option>
+                            <option value="-11">UTC-11</option>
+                            <option value="-10">UTC-10</option>
+                            <option value="-9">UTC-9</option>
+                            <option value="-8">UTC-8</option>
+                            <option value="-7">UTC-7</option>
+                            <option value="-6">UTC-6</option>
+                            <option value="-5">UTC-5</option>
+                            <option value="-4">UTC-4</option>
+                            <option value="-3">UTC-3</option>
+                            <option value="-2">UTC-2</option>
+                            <option value="-1">UTC-1</option>
+                            <option value="0" selected>UTC+0</option>
+                            <option value="1">UTC+1</option>
+                            <option value="2">UTC+2</option>
+                            <option value="3">UTC+3</option>
+                            <option value="4">UTC+4</option>
+                            <option value="5">UTC+5</option>
+                            <option value="6">UTC+6</option>
+                            <option value="7">UTC+7</option>
+                            <option value="8">UTC+8</option>
+                            <option value="9">UTC+9</option>
+                            <option value="10">UTC+10</option>
+                            <option value="11">UTC+11</option>
+                            <option value="12">UTC+12</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button id="calculate-chart-btn" class="primary-btn">Calculate Birth Chart</button>
+                    <button id="clear-form-btn" class="secondary-btn">Clear Form</button>
+                </div>
+                
+                <div id="calculation-status" class="status-message" style="display: none;"></div>
+            </div>
+        </div>
+        
         <div class="data-input-section">
-            <h2>Chart Data Input</h2>
-            <p>Enter your chart data in the format: Planet,Sign,Degree°Minute'[,R] (one per line)</p>
+            <h2>Manual Chart Data Input</h2>
+            <p>Or enter your chart data manually in the format: Planet,Sign,Degree°Minute'[,R] (one per line)</p>
             <p>You can copy data from astro-seek in this format</p>
             <textarea id="chart-data-input" placeholder="Example:
 Sun,Sagittarius,17°09'
@@ -136,11 +211,14 @@ MC,Leo,10°14'</textarea>
             <h2>Instructions</h2>
             <p><b>Hover</b> over planets and aspects to see detailed interpretations.</p>
             <p><b>Click</b> the checkboxes to toggle different chart elements.</p>
-            <p><b>Update</b> the chart data in the textarea above to see different charts.</p>
+            <p><b>Use the birth chart calculator</b> above to generate charts from birth data.</p>
+            <p><b>Or manually update</b> the chart data in the textarea above.</p>
         </div>
     </div>
         
     <script src="../assets/interpretations.js"></script>
+    <script src="birth-chart-calculator.js"></script>
+    <script src="accurate-ephemeris.js"></script>
     <script src="d3chart.js"></script>
 </body>
 </html> 

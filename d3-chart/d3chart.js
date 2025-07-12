@@ -849,6 +849,84 @@ function hideTooltip(tooltip) {
   tooltip.style('opacity', 0);
 }
 
+// Birth chart calculation functions
+function calculateBirthChartFromForm() {
+  const statusElement = document.getElementById('calculation-status');
+  
+  try {
+    // Get form values
+    const date = document.getElementById('birth-date').value;
+    const time = document.getElementById('birth-time').value;
+    const latitude = parseFloat(document.getElementById('birth-latitude').value);
+    const longitude = parseFloat(document.getElementById('birth-longitude').value);
+    const place = document.getElementById('birth-place').value;
+    const timezone = parseInt(document.getElementById('timezone-offset').value);
+    
+    // Validate inputs
+    if (!date || !time || isNaN(latitude) || isNaN(longitude) || !place) {
+      showStatus('Please fill in all required fields.', 'error');
+      return;
+    }
+    
+    if (latitude < -90 || latitude > 90) {
+      showStatus('Latitude must be between -90 and 90 degrees.', 'error');
+      return;
+    }
+    
+    if (longitude < -180 || longitude > 180) {
+      showStatus('Longitude must be between -180 and 180 degrees.', 'error');
+      return;
+    }
+    
+    showStatus('Calculating birth chart...', 'info');
+    
+    // Use the accurate ephemeris calculator
+    const birthData = { date, time, latitude, longitude, timezone };
+    const birthChart = window.AccurateEphemeris.calculateAccurateBirthChart(birthData);
+    
+    // Convert to chart format and update the textarea
+    const chartData = window.AccurateEphemeris.convertAccurateToChartFormat(birthChart);
+    document.getElementById('chart-data-input').value = chartData;
+    
+    // Update the chart
+    parseDataAndGenerateHouses();
+    calculateAspects();
+    createChart();
+    
+    showStatus(`Birth chart calculated for ${place}! Chart updated successfully.`, 'success');
+    
+  } catch (error) {
+    console.error('Error calculating birth chart:', error);
+    showStatus(`Error calculating birth chart: ${error.message}`, 'error');
+  }
+}
+
+function clearBirthChartForm() {
+  document.getElementById('birth-date').value = '';
+  document.getElementById('birth-time').value = '';
+  document.getElementById('birth-latitude').value = '';
+  document.getElementById('birth-longitude').value = '';
+  document.getElementById('birth-place').value = '';
+  document.getElementById('timezone-offset').value = '0';
+  
+  const statusElement = document.getElementById('calculation-status');
+  statusElement.style.display = 'none';
+}
+
+function showStatus(message, type) {
+  const statusElement = document.getElementById('calculation-status');
+  statusElement.textContent = message;
+  statusElement.className = `status-message ${type}`;
+  statusElement.style.display = 'block';
+  
+  // Auto-hide success messages after 5 seconds
+  if (type === 'success') {
+    setTimeout(() => {
+      statusElement.style.display = 'none';
+    }, 5000);
+  }
+}
+
 // Setup event listeners
 function setupEventListeners() {
   // Toggle controls
@@ -924,6 +1002,16 @@ function setupEventListeners() {
     parseDataAndGenerateHouses();
     calculateAspects();
     createChart();
+  });
+  
+  // Birth chart calculator
+  document.getElementById('calculate-chart-btn').addEventListener('click', function() {
+    calculateBirthChartFromForm();
+  });
+  
+  // Clear form button
+  document.getElementById('clear-form-btn').addEventListener('click', function() {
+    clearBirthChartForm();
   });
   
   // Window resize
