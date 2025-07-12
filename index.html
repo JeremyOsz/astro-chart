@@ -6,32 +6,159 @@
     <title>Astrological Chart with SVG Symbols</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
     <style>
-            @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Symbols:wght@400;700&display=swap');
-            
-            body {
-                margin: 0;
-                padding: 20px;
-                background-color: #f0f0f0;
-                font-family: Arial, sans-serif;
-            }
-            .container {
-                text-align: center;
-            }
-            h1 {
-                color: #333;
-                margin-bottom: 20px;
-            }
-            canvas {
-                border: 2px solid #333;
-                border-radius: 10px;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            }
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Symbols:wght@400;700&display=swap');
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 32px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .chart-section {
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .legend-section {
+            min-width: 300px;
+            max-width: 350px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+            padding: 24px 18px;
+            font-size: 15px;
+            flex-shrink: 0;
+            align-self: flex-start;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        h2 {
+            margin-top: 0;
+        }
+        canvas {
+            border: 2px solid #333;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .legend-symbol {
+            font-family: 'Noto Sans Symbols', Arial, sans-serif;
+            font-size: 1.3em;
+            margin-right: 0.5em;
+        }
+        .legend-color {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            margin-right: 0.5em;
+            vertical-align: middle;
+        }
+        .aspect-line {
+            display: inline-block;
+            width: 24px;
+            height: 4px;
+            vertical-align: middle;
+            margin-right: 0.5em;
+        }
+        .legend-section label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 15px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Astrological Chart with SVG Zodiac Symbols</h1>
-        <script src="p5chart.js"></script>
+        <div class="chart-section">
+            <h1>Astrological Chart</h1>
+            <div id="chart-canvas"></div>
+        </div>
+        <div class="legend-section">
+            <h2>Options</h2>
+            <label><input type="checkbox" id="toggle-degree" checked> Degree Markers</label>
+            <label><input type="checkbox" id="toggle-extended" checked> Extended Planets</label>
+            <label><input type="checkbox" id="toggle-aspects" checked> Aspect Lines</label>
+            <hr>
+            <h2>Legend</h2>
+            <b>Planets</b>
+            <ul style="list-style:none;padding-left:0;">
+                <li><span class="legend-symbol">☉</span> Sun</li>
+                <li><span class="legend-symbol">☽</span> Moon</li>
+                <li><span class="legend-symbol">☿</span> Mercury</li>
+                <li><span class="legend-symbol">♀</span> Venus</li>
+                <li><span class="legend-symbol">♂</span> Mars</li>
+                <li><span class="legend-symbol">♃</span> Jupiter</li>
+                <li><span class="legend-symbol">♄</span> Saturn</li>
+                <li><span class="legend-symbol">♅</span> Uranus</li>
+                <li><span class="legend-symbol">♆</span> Neptune</li>
+                <li><span class="legend-symbol">♇</span> Pluto</li>
+            </ul>
+            <div style="margin-top:6px;font-size:13px;">
+                <b>Extended Points:</b>
+                <ul style="list-style:none;padding-left:0;">
+                    <li><span class="legend-symbol">☊</span> Node</li>
+                    <li><span class="legend-symbol">⚸</span> Lilith</li>
+                    <li><span class="legend-symbol">⚷</span> Chiron</li>
+                    <li><span class="legend-symbol">⊗</span> Fortune</li>
+                    <li><span class="legend-symbol">Vx</span> Vertex</li>
+                </ul>
+            </div>
+            <div style="margin-top:16px;">
+                <b>Angles</b>
+                <ul style="list-style:none;padding-left:0;">
+                    <li><span class="legend-symbol">Asc</span> ASC</li>
+                    <li><span class="legend-symbol">MC</span> MC</li>
+                    <li><span class="legend-symbol">Dsc</span> DSC</li>
+                    <li><span class="legend-symbol">IC</span> IC</li>
+                </ul>
+            </div>
+            <div style="margin-top:16px;">
+                <b>Zodiac Signs</b>
+                <ul style="list-style:none;padding-left:0;">
+                    <li><span class="legend-symbol" style="color:#e53935">♈</span> Aries</li>
+                    <li><span class="legend-symbol" style="color:#43a047">♉</span> Taurus</li>
+                    <li><span class="legend-symbol" style="color:#fbc02d">♊</span> Gemini</li>
+                    <li><span class="legend-symbol" style="color:#039be5">♋</span> Cancer</li>
+                    <li><span class="legend-symbol" style="color:#e53935">♌</span> Leo</li>
+                    <li><span class="legend-symbol" style="color:#43a047">♍</span> Virgo</li>
+                    <li><span class="legend-symbol" style="color:#fbc02d">♎</span> Libra</li>
+                    <li><span class="legend-symbol" style="color:#039be5">♏</span> Scorpio</li>
+                    <li><span class="legend-symbol" style="color:#e53935">♐</span> Sagittarius</li>
+                    <li><span class="legend-symbol" style="color:#43a047">♑</span> Capricorn</li>
+                    <li><span class="legend-symbol" style="color:#fbc02d">♒</span> Aquarius</li>
+                    <li><span class="legend-symbol" style="color:#039be5">♓</span> Pisces</li>
+                </ul>
+            </div>
+            <div style="margin-top:16px;">
+                <b>Elements</b>
+                <ul style="list-style:none;padding-left:0;">
+                    <li><span class="legend-color" style="background:#e53935"></span> Fire <span style="color:#888;font-size:13px;">(Aries, Leo, Sagittarius)</span></li>
+                    <li><span class="legend-color" style="background:#43a047"></span> Earth <span style="color:#888;font-size:13px;">(Taurus, Virgo, Capricorn)</span></li>
+                    <li><span class="legend-color" style="background:#fbc02d"></span> Air <span style="color:#888;font-size:13px;">(Gemini, Libra, Aquarius)</span></li>
+                    <li><span class="legend-color" style="background:#039be5"></span> Water <span style="color:#888;font-size:13px;">(Cancer, Scorpio, Pisces)</span></li>
+                </ul>
+            </div>
+            <div style="margin-top:16px;">
+                <b>Major Aspects</b>
+                <ul style="list-style:none;padding-left:0;">
+                    <li><span class="aspect-line" style="background:#228B22;border-bottom:2.5px solid #228B22;"></span> Conjunction</li>
+                    <li><span class="aspect-line" style="background:#FF0000;border-bottom:2.5px solid #FF0000;"></span> Opposition</li>
+                    <li><span class="aspect-line" style="background:#FF0000;border-bottom:2.5px solid #FF0000;"></span> Square</li>
+                    <li><span class="aspect-line" style="background:#0000FF;border-bottom:2px solid #0000FF;"></span> Trine</li>
+                    <li><span class="aspect-line" style="background:#0000FF;border-bottom:2px dotted #0000FF;"></span> Sextile</li>
+                </ul>
+            </div>
+            <div style="margin-top:16px;"><span style="color:#FF0000;font-weight:bold;">Rx</span> = Retrograde</div>
+        </div>
     </div>
+    <script src="p5chart.js"></script>
 </body>
 </html> 

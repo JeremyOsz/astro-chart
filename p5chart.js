@@ -1,21 +1,21 @@
 // The astrological data as a multi-line string
-const data = `Sun,Sagittarius,17°09’
-Moon,Capricorn,26°20’
-Mercury,Sagittarius,14°28’,R
-Venus,Scorpio,4°00’
-Mars,Sagittarius,7°36’
-Jupiter,Virgo,13°55’,R
-Saturn,Aquarius,3°32’
-Uranus,Capricorn,12°23’
-Neptune,Capricorn,15°24’
-Pluto,Scorpio,21°20’
-Node,Capricorn,10°59’,R
-Lilith,Capricorn,25°14’
-Chiron,Leo,9°20’,R
-Fortune,Libra,22°29’
-Vertex,Aries,29°44’
-ASC,Sagittarius,1°40’
-MC,Leo,10°14’`;
+const data = `Sun,Sagittarius,17°09'
+Moon,Capricorn,26°20'
+Mercury,Sagittarius,14°28',R
+Venus,Scorpio,4°00'
+Mars,Sagittarius,7°36'
+Jupiter,Virgo,13°55',R
+Saturn,Aquarius,3°32'
+Uranus,Capricorn,12°23'
+Neptune,Capricorn,15°24'
+Pluto,Scorpio,21°20'
+Node,Capricorn,10°59',R
+Lilith,Capricorn,25°14'
+Chiron,Leo,9°20',R
+Fortune,Libra,22°29'
+Vertex,Aries,29°44'
+ASC,Sagittarius,1°40'
+MC,Leo,10°14'`;
 
 // --- Toggle State Variables ---
 let showDegreeMarkers = true;
@@ -85,12 +85,32 @@ const ASPECT_HUB_RADIUS = 170;
 const CLUSTER_THRESHOLD = 12;
 
 function setup() {
-  createCanvas(800, 800);
+  const canvas = createCanvas(800, 800);
+  const chartDiv = document.getElementById('chart-canvas');
+  if (chartDiv) chartDiv.appendChild(canvas.elt);
   angleMode(DEGREES);
-  textFont('Noto Sans Symbols'); // Use the imported font for better symbol rendering
-  setupButtons();
+  textFont('Noto Sans Symbols');
   parseDataAndGenerateHouses();
   calculateAspects();
+
+  // Initialize state from HTML checkboxes
+  showDegreeMarkers = document.getElementById('toggle-degree').checked;
+  showExtendedPlanets = document.getElementById('toggle-extended').checked;
+  showAspectLines = document.getElementById('toggle-aspects').checked;
+
+  // Listen to HTML toggles
+  document.getElementById('toggle-degree').addEventListener('change', e => {
+    showDegreeMarkers = e.target.checked;
+    redraw();
+  });
+  document.getElementById('toggle-extended').addEventListener('change', e => {
+    showExtendedPlanets = e.target.checked;
+    redraw();
+  });
+  document.getElementById('toggle-aspects').addEventListener('change', e => {
+    showAspectLines = e.target.checked;
+    redraw();
+  });
 }
 
 function draw() {
@@ -100,7 +120,7 @@ function draw() {
   drawHouseLinesAndNumbers();
   if (showAspectLines) drawAspects();
   drawPlanets();
-  push(); resetMatrix(); drawUI(); pop();
+  
   handleInteractivity();
 }
 
@@ -331,26 +351,6 @@ function drawPlanets() {
 }
 
 // --- UI, Interactivity, and Helpers ---
-
-function setupButtons() {
-    buttons.push({ x: 10, y: 10, w: 150, h: 25, label: 'Degree Markers', state: () => showDegreeMarkers, action: () => { showDegreeMarkers = !showDegreeMarkers; } });
-    buttons.push({ x: 10, y: 40, w: 150, h: 25, label: 'Extended Planets', state: () => showExtendedPlanets, action: () => { showExtendedPlanets = !showExtendedPlanets; } });
-    buttons.push({ x: 10, y: 70, w: 150, h: 25, label: 'Aspect Lines', state: () => showAspectLines, action: () => { showAspectLines = !showAspectLines; } });
-}
-
-function drawUI() {
-    let onButton = false;
-    buttons.forEach(btn => {
-        if (mouseX > btn.x && mouseX < btn.x + btn.w && mouseY > btn.y && mouseY < btn.y + btn.h) {
-            cursor('pointer'); onButton = true;
-        }
-        fill(btn.state() ? '#4CAF50' : '#F44336');
-        noStroke(); rect(btn.x, btn.y, btn.w, btn.h, 5);
-        fill(255); textAlign(CENTER, CENTER); textSize(12);
-        text(`${btn.label}: ${btn.state() ? 'ON' : 'OFF'}`, btn.x + btn.w / 2, btn.y + btn.h / 2);
-    });
-    if (!onButton) { cursor(ARROW); }
-}
 
 function handleInteractivity() {
     const asc = chartData.find(p => p.name === 'ASC');
