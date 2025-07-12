@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Astrological Chart with D3.js</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Symbols:wght@400;700&display=swap');
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            padding: 10px;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            max-width: 1200px;
+            margin: 0 auto;
+            gap: 20px;
+        }
+        
+        .chart-section {
+            text-align: center;
+            order: 1;
+        }
+        
+        .legend-section {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+            padding: 20px;
+            font-size: 14px;
+            order: 2;
+        }
+        
+        h1 {
+            color: #333;
+            margin: 0 0 15px 0;
+            font-size: 1.5rem;
+        }
+        
+        h2 {
+            margin: 0 0 15px 0;
+            font-size: 1.2rem;
+        }
+        
+        #chart-container {
+            border: 2px solid #333;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            max-width: 100%;
+            height: auto;
+            background: white;
+        }
+        
+        .legend-symbol {
+            font-family: 'Noto Sans Symbols', Arial, sans-serif;
+            font-size: 1.2em;
+            margin-right: 0.5em;
+        }
+        
+        .legend-color {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+            margin-right: 0.5em;
+            vertical-align: middle;
+        }
+        
+        .aspect-line {
+            display: inline-block;
+            width: 20px;
+            height: 3px;
+            vertical-align: middle;
+            margin-right: 0.5em;
+        }
+        
+        .legend-section label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .legend-section input[type="checkbox"] {
+            margin-right: 8px;
+            transform: scale(1.2);
+        }
+        
+        .legend-section ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 10px 0;
+        }
+        
+        .legend-section li {
+            margin-bottom: 4px;
+            font-size: 13px;
+        }
+        
+        .legend-section hr {
+            margin: 20px 0;
+            border: none;
+            border-top: 1px solid #ddd;
+        }
+        
+        .legend-section b {
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .data-input-section {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .data-input-section textarea {
+            width: 100%;
+            height: 200px;
+            font-family: monospace;
+            font-size: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            resize: vertical;
+        }
+        
+        .data-input-section button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+        .data-input-section button:hover {
+            background: #45a049;
+        }
+        
+        .data-input-section button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        /* Tooltip styles */
+        .tooltip {
+            position: absolute;
+            background: rgba(255, 255, 240, 0.95);
+            border: 1px solid #000;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 12px;
+            pointer-events: none;
+            max-width: 300px;
+            z-index: 1000;
+        }
+        
+        /* Tablet and larger screens */
+        @media (min-width: 768px) {
+            body {
+                padding: 20px;
+            }
+            
+            .container {
+                flex-direction: row;
+                align-items: flex-start;
+                gap: 32px;
+            }
+            
+            .chart-section {
+                flex-shrink: 0;
+            }
+            
+            .legend-section {
+                min-width: 280px;
+                max-width: 320px;
+                flex-shrink: 0;
+                align-self: flex-start;
+                font-size: 15px;
+                padding: 24px 18px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+                margin-bottom: 20px;
+            }
+            
+            h2 {
+                font-size: 1.4rem;
+            }
+            
+            .legend-section label {
+                font-size: 15px;
+            }
+            
+            .legend-section li {
+                font-size: 14px;
+            }
+            
+            .legend-section b {
+                font-size: 15px;
+            }
+        }
+        
+        /* Large screens */
+        @media (min-width: 1024px) {
+            .legend-section {
+                min-width: 300px;
+                max-width: 350px;
+            }
+        }
+        
+        /* Mobile-specific improvements */
+        @media (max-width: 767px) {
+            .legend-section {
+                margin: 0 10px;
+            }
+            
+            .legend-section ul {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 8px;
+            }
+            
+            .legend-section li {
+                font-size: 12px;
+            }
+            
+            .legend-section b {
+                font-size: 13px;
+            }
+            
+            .tooltip {
+                max-width: 250px;
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="data-input-section">
+            <h2>Chart Data Input</h2>
+            <p>Enter your chart data in the format: Planet,Sign,Degree°Minute'[,R] (one per line)</p>
+            <textarea id="chart-data-input" placeholder="Example:
+Sun,Sagittarius,17°09'
+Moon,Capricorn,26°20'
+Mercury,Sagittarius,14°28',R
+Venus,Scorpio,4°00'
+Mars,Sagittarius,7°36'
+Jupiter,Virgo,13°55',R
+Saturn,Aquarius,3°32'
+Uranus,Capricorn,12°23'
+Neptune,Capricorn,15°24'
+Pluto,Scorpio,21°20'
+Node,Capricorn,10°59',R
+Lilith,Capricorn,25°14'
+Chiron,Leo,9°20',R
+Fortune,Libra,22°29'
+Vertex,Aries,29°44'
+ASC,Sagittarius,1°40'
+MC,Leo,10°14'">Sun,Sagittarius,17°09'
+Moon,Capricorn,26°20'
+Mercury,Sagittarius,14°28',R
+Venus,Scorpio,4°00'
+Mars,Sagittarius,7°36'
+Jupiter,Virgo,13°55',R
+Saturn,Aquarius,3°32'
+Uranus,Capricorn,12°23'
+Neptune,Capricorn,15°24'
+Pluto,Scorpio,21°20'
+Node,Capricorn,10°59',R
+Lilith,Capricorn,25°14'
+Chiron,Leo,9°20',R
+Fortune,Libra,22°29'
+Vertex,Aries,29°44'
+ASC,Sagittarius,1°40'
+MC,Leo,10°14'</textarea>
+            <button id="update-chart-btn">Update Chart</button>
+        </div>
+        
+        <div class="chart-section">
+            <h1>Astrological Chart</h1>
+            <div id="chart-container"></div>
+        </div>
+        
+        <div class="legend-section">
+            <h2>Chart Controls</h2>
+            <label><input type="checkbox" id="toggle-degree" checked> Show Degree Markers</label>
+            <label><input type="checkbox" id="toggle-extended" checked> Show Extended Planets</label>
+            <label><input type="checkbox" id="toggle-aspects" checked> Show Aspect Lines</label>
+            
+            <hr>
+            
+            <h2>Zodiac Signs</h2>
+            <ul>
+                <li><span class="legend-color" style="background-color: #e53935;"></span><span class="legend-symbol">♈</span> Aries (Fire)</li>
+                <li><span class="legend-color" style="background-color: #43a047;"></span><span class="legend-symbol">♉</span> Taurus (Earth)</li>
+                <li><span class="legend-color" style="background-color: #fbc02d;"></span><span class="legend-symbol">♊</span> Gemini (Air)</li>
+                <li><span class="legend-color" style="background-color: #039be5;"></span><span class="legend-symbol">♋</span> Cancer (Water)</li>
+                <li><span class="legend-color" style="background-color: #e53935;"></span><span class="legend-symbol">♌</span> Leo (Fire)</li>
+                <li><span class="legend-color" style="background-color: #43a047;"></span><span class="legend-symbol">♍</span> Virgo (Earth)</li>
+                <li><span class="legend-color" style="background-color: #fbc02d;"></span><span class="legend-symbol">♎</span> Libra (Air)</li>
+                <li><span class="legend-color" style="background-color: #039be5;"></span><span class="legend-symbol">♏</span> Scorpio (Water)</li>
+                <li><span class="legend-color" style="background-color: #e53935;"></span><span class="legend-symbol">♐</span> Sagittarius (Fire)</li>
+                <li><span class="legend-color" style="background-color: #43a047;"></span><span class="legend-symbol">♑</span> Capricorn (Earth)</li>
+                <li><span class="legend-color" style="background-color: #fbc02d;"></span><span class="legend-symbol">♒</span> Aquarius (Air)</li>
+                <li><span class="legend-color" style="background-color: #039be5;"></span><span class="legend-symbol">♓</span> Pisces (Water)</li>
+            </ul>
+            
+            <hr>
+            
+            <h2>Planet Symbols</h2>
+            <ul>
+                <li><span class="legend-symbol">☉</span> Sun</li>
+                <li><span class="legend-symbol">☽</span> Moon</li>
+                <li><span class="legend-symbol">☿</span> Mercury</li>
+                <li><span class="legend-symbol">♀</span> Venus</li>
+                <li><span class="legend-symbol">♂</span> Mars</li>
+                <li><span class="legend-symbol">♃</span> Jupiter</li>
+                <li><span class="legend-symbol">♄</span> Saturn</li>
+                <li><span class="legend-symbol">♅</span> Uranus</li>
+                <li><span class="legend-symbol">♆</span> Neptune</li>
+                <li><span class="legend-symbol">♇</span> Pluto</li>
+                <li><span class="legend-symbol">☊</span> North Node</li>
+                <li><span class="legend-symbol">⚸</span> Black Moon Lilith</li>
+                <li><span class="legend-symbol">⚷</span> Chiron</li>
+                <li><span class="legend-symbol">⊗</span> Part of Fortune</li>
+                <li><span class="legend-symbol">Vx</span> Vertex</li>
+                <li><span class="legend-symbol">Asc</span> Ascendant</li>
+                <li><span class="legend-symbol">MC</span> Midheaven</li>
+            </ul>
+            
+            <hr>
+            
+            <h2>Aspect Lines</h2>
+            <ul>
+                <li><span class="aspect-line" style="background-color: #228B22; border-radius: 2px;"></span> Conjunction (0°)</li>
+                <li><span class="aspect-line" style="background-color: #FF0000; border-radius: 2px;"></span> Opposition (180°)</li>
+                <li><span class="aspect-line" style="background-color: #FF0000; border-radius: 2px;"></span> Square (90°)</li>
+                <li><span class="aspect-line" style="background-color: #0000FF; border-radius: 2px;"></span> Trine (120°)</li>
+                <li><span class="aspect-line" style="background-color: #0000FF; border-radius: 2px; border-top: 2px dotted #0000FF; background: transparent;"></span> Sextile (60°)</li>
+                <li><span class="aspect-line" style="background-color: #B8860B; border-radius: 2px; border-top: 2px dashed #B8860B; background: transparent;"></span> Quincunx (150°)</li>
+            </ul>
+            
+            <hr>
+            
+            <h2>Instructions</h2>
+            <p><b>Hover</b> over planets and aspects to see detailed interpretations.</p>
+            <p><b>Click</b> the checkboxes to toggle different chart elements.</p>
+            <p><b>Update</b> the chart data in the textarea above to see different charts.</p>
+        </div>
+    </div>
+    
+    <div id="tooltip" class="tooltip" style="display: none;"></div>
+    
+    <script src="../scripts/interpretations.js"></script>
+    <script src="d3chart.js"></script>
+</body>
+</html> 

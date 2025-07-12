@@ -1,4 +1,23 @@
 window.interpretationsData = {
+  "planets": {
+    "Sun": "The Sun represents your core identity, ego, and life purpose. It shows how you express yourself and what drives you at the deepest level. The Sun's placement reveals your fundamental character and the qualities you're developing in this lifetime.",
+    "Moon": "The Moon represents your emotional nature, instincts, and subconscious mind. It shows how you process feelings, your need for security, and your intuitive responses. The Moon reveals your inner world and emotional patterns.",
+    "Mercury": "Mercury represents communication, thinking, and learning. It shows how you process information, express ideas, and connect with others intellectually. Mercury reveals your mental approach and communication style.",
+    "Venus": "Venus represents love, beauty, and values. It shows how you approach relationships, what you find attractive, and your artistic sensibilities. Venus reveals your approach to harmony and what brings you pleasure.",
+    "Mars": "Mars represents action, energy, and desire. It shows how you pursue goals, handle conflict, and express your passions. Mars reveals your drive and how you assert yourself in the world.",
+    "Jupiter": "Jupiter represents expansion, wisdom, and optimism. It shows your philosophical outlook, areas of growth, and how you find meaning in life. Jupiter reveals your natural talents and areas of abundance.",
+    "Saturn": "Saturn represents discipline, responsibility, and limitations. It shows where you need to work hard, face challenges, and develop maturity. Saturn reveals your lessons and areas where you must build structure.",
+    "Uranus": "Uranus represents innovation, independence, and sudden change. It shows your unique perspective, rebellious nature, and areas where you break from tradition. Uranus reveals your revolutionary spirit and originality.",
+    "Neptune": "Neptune represents spirituality, dreams, and illusion. It shows your connection to the divine, artistic inspiration, and areas where you may be idealistic. Neptune reveals your spiritual path and creative imagination.",
+    "Pluto": "Pluto represents transformation, power, and deep psychological processes. It shows areas of profound change, intense experiences, and your ability to influence others. Pluto reveals your capacity for rebirth and psychological depth.",
+    "Node": "The North Node represents your soul's evolutionary direction and karmic lessons. It shows the qualities you're developing and the path toward your highest potential. The North Node reveals your destiny and spiritual growth.",
+    "Lilith": "Black Moon Lilith represents your primal instincts, hidden desires, and the parts of yourself you may suppress. It shows your relationship with power, sexuality, and the shadow self. Lilith reveals your authentic, untamed nature.",
+    "Chiron": "Chiron represents your deepest wounds and your capacity to heal. It shows where you've experienced pain and how you can transform that pain into wisdom. Chiron reveals your healing gifts and areas where you help others.",
+    "Fortune": "The Part of Fortune represents areas of natural luck and fulfillment. It shows where you find joy and success when you align with your true nature. The Part of Fortune reveals your path to happiness and abundance.",
+    "Vertex": "The Vertex represents fated encounters and significant relationships. It shows people and experiences that are destined to cross your path. The Vertex reveals karmic connections and important turning points.",
+    "ASC": "The Ascendant represents your outer personality and how others see you. It shows your approach to life and the mask you wear in the world. The Ascendant reveals your first impressions and physical appearance.",
+    "MC": "The Midheaven represents your career, public image, and life direction. It shows your ambitions, achievements, and how you want to be recognized. The MC reveals your professional path and highest aspirations."
+  },
   "aspects": {
     "Conjunction": {
       "general": "Planets in conjunction blend their energies together, creating a powerful fusion of their qualities. This aspect represents unity, focus, and intensity. The planets work as one, amplifying each other's characteristics.",
