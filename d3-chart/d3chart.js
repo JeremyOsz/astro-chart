@@ -32,10 +32,18 @@ const zodiacSymbols = {
   "Libra": "♎", "Scorpio": "♏", "Sagittarius": "♐", "Capricorn": "♑", "Aquarius": "♒", "Pisces": "♓"
 };
 const zodiacColors = {
-  "Aries": "#e53935", "Leo": "#e53935", "Sagittarius": "#e53935",
-  "Taurus": "#43a047", "Virgo": "#43a047", "Capricorn": "#43a047",
-  "Gemini": "#fbc02d", "Libra": "#fbc02d", "Aquarius": "#fbc02d",
-  "Cancer": "#039be5", "Scorpio": "#039be5", "Pisces": "#039be5"
+  "Aries": "#e53935",      // Fire - Red
+  "Taurus": "#43a047",     // Earth - Green
+  "Gemini": "#fbc02d",     // Air - Yellow
+  "Cancer": "#039be5",     // Water - Blue
+  "Leo": "#e53935",        // Fire - Red
+  "Virgo": "#43a047",      // Earth - Green
+  "Libra": "#fbc02d",      // Air - Yellow
+  "Scorpio": "#039be5",    // Water - Blue
+  "Sagittarius": "#e53935",// Fire - Red
+  "Capricorn": "#43a047",  // Earth - Green
+  "Aquarius": "#fbc02d",   // Air - Yellow
+  "Pisces": "#039be5"      // Water - Blue
 };
 const planetSymbols = {
   "Sun": "☉", "Moon": "☽", "Mercury": "☿", "Venus": "♀", "Mars": "♂", "Jupiter": "♃",
@@ -283,8 +291,10 @@ function drawZodiacWheel(g, ascAngle) {
   zodiacSigns.forEach((sign, index) => {
     // Center each sign region based on the ASC
     // The region for each sign starts at (signStart) and ends at (signEnd)
-    const signStart = (180 - ((index * 30) - ascAngle)) * Math.PI / 180;
-    const signEnd = (180 - (((index + 1) * 30) - ascAngle)) * Math.PI / 180;
+    const signStartDeg = (180 - ((index * 30) - ascAngle));
+    const signEndDeg = (180 - (((index + 1) * 30) - ascAngle));
+    const signStart = signStartDeg * Math.PI / 180;
+    const signEnd = signEndDeg * Math.PI / 180;
     const arc = d3.arc()
       .innerRadius(ZODIAC_INNER_RADIUS)
       .outerRadius(ZODIAC_OUTER_RADIUS)
@@ -292,8 +302,9 @@ function drawZodiacWheel(g, ascAngle) {
       .endAngle(signEnd);
     g.append('path')
       .attr('d', arc)
-      .attr('fill', zodiacColors[sign])
-      .attr('opacity', 0.1);
+      .attr('fill', 'none')
+      .attr('stroke-width', 2)
+      .attr('opacity', 0.6);
   });
 
   // Degree tick marks
@@ -326,8 +337,11 @@ function drawZodiacWheel(g, ascAngle) {
 
   // Zodiac sign glyphs
   zodiacSigns.forEach((sign, index) => {
-    const signMidpointDegree = (index * 30) + 15;
-    const angle = (180 - (signMidpointDegree - ascAngle)) * Math.PI / 180;
+    // Center glyph at the middle of the sign's region
+    const signStart = (180 - ((index * 30) - ascAngle));
+    const signEnd = (180 - (((index + 1) * 30) - ascAngle));
+    const signMid = (signStart + signEnd) / 2;
+    const angle = signMid * Math.PI / 180;
     const symbolRadius = ZODIAC_INNER_RADIUS + 25;
     const x = Math.cos(angle) * symbolRadius;
     const y = Math.sin(angle) * symbolRadius;
@@ -456,13 +470,15 @@ function drawPlanets(g, ascAngle) {
     const labelX = Math.cos(angleRad) * LABEL_RADIUS;
     const labelY = Math.sin(angleRad) * LABEL_RADIUS;
     
-    // Draw notch from inner zodiac to planet icon
-    const notchStartX = Math.cos(angleRad) * ZODIAC_INNER_RADIUS;
-    const notchStartY = Math.sin(angleRad) * ZODIAC_INNER_RADIUS;
+    // Draw notch from outer zodiac to just before planet icon
+    const notchStartX = Math.cos(angleRad) * (ZODIAC_INNER_RADIUS);
+    const notchStartY = Math.sin(angleRad) * (ZODIAC_INNER_RADIUS);
+    const notchEndX = Math.cos(angleRad) * (PLANET_RING_RADIUS + 20);
+    const notchEndY = Math.sin(angleRad) * (PLANET_RING_RADIUS + 20);
     g.append('line')
       .attr('x1', notchStartX).attr('y1', notchStartY)
-      .attr('x2', iconX).attr('y2', iconY)
-      .attr('stroke', '#bbb').attr('stroke-width', 1);
+      .attr('x2', notchEndX).attr('y2', notchEndY)
+      .attr('stroke', '#000').attr('stroke-width', 2);
 
     // Draw planet glyph
     const symbol = g.append('text')
