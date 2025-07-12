@@ -370,10 +370,80 @@ function handleInteractivity() {
         if (dist(mouseX - width / 2, mouseY - height / 2, x, y) < 15) {
             cursor('pointer'); hoveredOnPlanet = true;
             let info = `${p.name} at ${p.degree}° ${nf(p.minute, 2)}' ${p.sign}`;
+            let interpretation = '';
+            if (interpretations.planets[p.name]) {
+                interpretation = interpretations.planets[p.name].description;
+                // Optionally add keywords:
+                // if (interpretations.planets[p.name].keywords) {
+                //     interpretation += '\nKeywords: ' + interpretations.planets[p.name].keywords.join(', ');
+                // }
+            }
+            let tooltipText = info;
+            if (interpretation) {
+                tooltipText += '\n' + interpretation;
+            }
             const boxX = mouseX - width / 2 + 15; const boxY = mouseY - height / 2;
-            fill(255, 255, 240, 230); stroke(0); strokeWeight(1); rect(boxX, boxY, textWidth(info) + 20, 25, 5);
-            fill(0); noStroke(); textAlign(LEFT, CENTER); textSize(12);
-            text(info, boxX + 10, boxY + 12.5);
+            const maxWidth = 400;
+            const lineHeight = 20;
+            const padding = 10;
+            textSize(12);
+            // Use the same wordWrap as for aspects
+            function wordWrap(text, maxWidth) {
+                textSize(12);
+                const words = text.split(' ');
+                const lines = [];
+                let currentLine = '';
+                for (let word of words) {
+                    const testLine = currentLine + (currentLine ? ' ' : '') + word;
+                    if (textWidth(testLine) <= maxWidth) {
+                        currentLine = testLine;
+                    } else {
+                        if (currentLine) {
+                            lines.push(currentLine);
+                            currentLine = word;
+                        } else {
+                            if (word.length > 20) {
+                                const mid = Math.floor(word.length / 2);
+                                lines.push(word.substring(0, mid));
+                                currentLine = word.substring(mid);
+                            } else {
+                                currentLine = word;
+                            }
+                        }
+                    }
+                }
+                if (currentLine) {
+                    lines.push(currentLine);
+                }
+                // Orphan control
+                const shortWords = ['and','or','but','the','a','an','of','in','on','to','for','by','at','as','with','is','it','be','if','not','are','was','so','do','can','all','any','out','up','off','nor'];
+                for (let i = 1; i < lines.length; i++) {
+                    const prev = lines[i-1];
+                    const curr = lines[i];
+                    const currWords = curr.split(' ');
+                    if (currWords.length === 1 && (currWords[0].length <= 3 || shortWords.includes(currWords[0].toLowerCase()))) {
+                        const testLine = prev + ' ' + currWords[0];
+                        if (textWidth(testLine) <= maxWidth) {
+                            lines[i-1] = testLine;
+                            lines.splice(i,1);
+                            i--;
+                        }
+                    }
+                }
+                return lines;
+            }
+            const allLines = [];
+            tooltipText.split('\n').forEach(paragraph => {
+                allLines.push(...wordWrap(paragraph, maxWidth - 20));
+            });
+            const boxWidth = maxWidth;
+            const boxHeight = allLines.length * lineHeight + padding;
+            fill(255, 255, 240, 230); stroke(0); strokeWeight(1);
+            rect(boxX, boxY, boxWidth, boxHeight, 5);
+            fill(0); noStroke(); textAlign(LEFT, TOP); textSize(12);
+            allLines.forEach((line, index) => {
+                text(line, boxX + 10, boxY + 5 + index * lineHeight);
+            });
         }
     });
     
