@@ -632,26 +632,34 @@ function addInteractivity(g, ascAngle) {
   }
 
   // Planet tooltips
-  g.selectAll('.planet-glyph').on('mouseover', function(event, d) {
-    console.log('Planet mouseover', d);
-    const interpretation = getPlanetInterpretation(d);
-    showTooltip(event, interpretation, tooltip, positionTooltip);
-  }).on('mousemove', function(event) {
-    positionTooltip(event, tooltip);
-  }).on('mouseout', function() {
-    hideTooltip(tooltip);
-  });
+  g.selectAll('.planet-glyph')
+    .style('cursor', 'pointer')
+    .on('mouseover', function(event, d) {
+      console.log('Planet mouseover', d);
+      const interpretation = getPlanetInterpretation(d);
+      showTooltip(event, interpretation, tooltip, positionTooltip);
+    })
+    .on('mousemove', function(event) {
+      positionTooltip(event, tooltip);
+    })
+    .on('mouseout', function() {
+      hideTooltip(tooltip);
+    });
 
   // Aspect tooltips
-  g.selectAll('.aspect-line').on('mouseover', function(event, d) {
-    console.log('Aspect mouseover', d);
-    const interpretation = getAspectInterpretation(d);
-    showTooltip(event, interpretation, tooltip, positionTooltip);
-  }).on('mousemove', function(event) {
-    positionTooltip(event, tooltip);
-  }).on('mouseout', function() {
-    hideTooltip(tooltip);
-  });
+  g.selectAll('.aspect-line')
+    .style('cursor', 'pointer')
+    .on('mouseover', function(event, d) {
+      console.log('Aspect mouseover', d);
+      const interpretation = getAspectInterpretation(d);
+      showTooltip(event, interpretation, tooltip, positionTooltip);
+    })
+    .on('mousemove', function(event) {
+      positionTooltip(event, tooltip);
+    })
+    .on('mouseout', function() {
+      hideTooltip(tooltip);
+    });
 }
 
 // Get planet interpretation
