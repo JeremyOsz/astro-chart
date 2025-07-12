@@ -26,7 +26,36 @@ let showAspectLines = true;
 let chartData = [], houseCusps = [], aspects = [], buttons = [];
 
 const zodiacSigns = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
-const zodiacSymbols = {"Aries": "♈", "Taurus": "♉", "Gemini": "♊", "Cancer": "♋", "Leo": "♌", "Virgo": "♍", "Libra": "♎", "Scorpio": "♏", "Sagittarius": "♐", "Capricorn": "♑", "Aquarius": "♒", "Pisces": "♓"};
+// Unicode zodiac symbols that render as proper symbols in most fonts
+const zodiacSymbols = {
+  "Aries": "♈", 
+  "Taurus": "♉", 
+  "Gemini": "♊", 
+  "Cancer": "♋", 
+  "Leo": "♌", 
+  "Virgo": "♍", 
+  "Libra": "♎", 
+  "Scorpio": "♏", 
+  "Sagittarius": "♐", 
+  "Capricorn": "♑", 
+  "Aquarius": "♒", 
+  "Pisces": "♓"
+};
+// Thematic colors for each zodiac sign by element
+const zodiacColors = {
+  "Aries": "#e53935",      // Fire - Red
+  "Leo": "#e53935",        // Fire - Red
+  "Sagittarius": "#e53935",// Fire - Red
+  "Taurus": "#43a047",     // Earth - Green
+  "Virgo": "#43a047",      // Earth - Green
+  "Capricorn": "#43a047",  // Earth - Green
+  "Gemini": "#fbc02d",     // Air - Yellow
+  "Libra": "#fbc02d",      // Air - Yellow
+  "Aquarius": "#fbc02d",   // Air - Yellow
+  "Cancer": "#039be5",     // Water - Blue
+  "Scorpio": "#039be5",    // Water - Blue
+  "Pisces": "#039be5"      // Water - Blue
+};
 const ZODIAC_GLYPH_COLOR = '#8A2BE2';
 const planetSymbols = { "Sun": "☉", "Moon": "☽", "Mercury": "☿", "Venus": "♀", "Mars": "♂", "Jupiter": "♃", "Saturn": "♄", "Uranus": "♅", "Neptune": "♆", "Pluto": "♇", "Node": "☊", "Lilith": "⚸", "Chiron": "⚷", "Fortune": "⊗", "Vertex": "Vx", "ASC": "Asc", "MC": "MC", "DSC": "Dsc", "IC": "IC"};
 const extendedPlanetNames = ["Chiron", "Lilith", "Node", "Fortune", "Vertex"];
@@ -46,18 +75,19 @@ const aspectDefs = {
 const coreAspectBodies = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto", "ASC"];
 
 // --- Layout Constants ---
-const ZODIAC_OUTER_RADIUS = 310;
-const ZODIAC_INNER_RADIUS = 260;
-const PLANET_RING_RADIUS = 230;
-const LABEL_RADIUS = 190;
-const HOUSE_LINE_INNER_RADIUS = 140;
-const HOUSE_NUM_RADIUS = 150;
-const ASPECT_HUB_RADIUS = 140;
+const ZODIAC_OUTER_RADIUS = 350;
+const ZODIAC_INNER_RADIUS = 300;
+const PLANET_RING_RADIUS = 270;
+const LABEL_RADIUS = 230;
+const HOUSE_LINE_INNER_RADIUS = 170;
+const HOUSE_NUM_RADIUS = 180;
+const ASPECT_HUB_RADIUS = 170;
 const CLUSTER_THRESHOLD = 12;
 
 function setup() {
-  createCanvas(700, 700);
+  createCanvas(800, 800);
   angleMode(DEGREES);
+  textFont('Noto Sans Symbols'); // Use the imported font for better symbol rendering
   setupButtons();
   parseDataAndGenerateHouses();
   calculateAspects();
@@ -149,7 +179,7 @@ function drawZodiacWheel() {
   for (let i = 0; i < 12; i++) {
     const signMidpointDegree = (i * 30) + 15;
     const angle = 180 - (signMidpointDegree - ascDegree);
-    fill(ZODIAC_GLYPH_COLOR); noStroke(); textSize(24); textAlign(CENTER, CENTER);
+    fill(zodiacColors[zodiacSigns[i]]); noStroke(); textSize(24); textAlign(CENTER, CENTER);
     text(zodiacSymbols[zodiacSigns[i]], cos(angle) * (ZODIAC_INNER_RADIUS + 25), sin(angle) * (ZODIAC_INNER_RADIUS + 25));
   }
 }
@@ -160,18 +190,29 @@ function drawHouseLinesAndNumbers() {
     const ascDegree = asc.absoluteDegree;
     const mc = chartData.find(p => p.name === 'MC');
     const axes = [asc, mc, chartData.find(p=>p.name==='DSC'), chartData.find(p=>p.name==='IC')];
-    
-    // Draw all 12 house cusps as spokes
+    const HOUSE_LINE_CENTER_GAP = 170; // px, gap at center
+    // Draw all 12 house cusps as spokes (with thick outer segment only on rim)
     houseCusps.forEach(cusp => {
         const angle = 180 - (cusp.absoluteDegree - ascDegree);
         const isAxisCusp = axes.some(ax => ax.absoluteDegree % 360 === cusp.absoluteDegree % 360);
-        stroke(isAxisCusp ? 150 : 220); // Make axis spokes slightly darker
+        // Thin segment: from small radius to just before outer rim
+        stroke(isAxisCusp ? 150 : 220);
         strokeWeight(1);
-        const startX = cos(angle) * HOUSE_LINE_INNER_RADIUS;
-        const startY = sin(angle) * HOUSE_LINE_INNER_RADIUS;
-        const endX = cos(angle) * ZODIAC_INNER_RADIUS;
-        const endY = sin(angle) * ZODIAC_INNER_RADIUS;
-        line(startX, startY, endX, endY);
+        const thinStartRadius = HOUSE_LINE_CENTER_GAP;
+        const thinEndRadius = ZODIAC_INNER_RADIUS;
+        const thinStartX = cos(angle) * thinStartRadius;
+        const thinStartY = sin(angle) * thinStartRadius;
+        const thinEndX = cos(angle) * thinEndRadius;
+        const thinEndY = sin(angle) * thinEndRadius;
+        line(thinStartX, thinStartY, thinEndX, thinEndY);
+        // Thick segment: only on outermost 10%
+        stroke(isAxisCusp ? 80 : 120);
+        strokeWeight(isAxisCusp ? 4 : 2.5);
+        const thickStartX = cos(angle) * thinEndRadius;
+        const thickStartY = sin(angle) * thinEndRadius;
+        const thickEndX = cos(angle) * ZODIAC_OUTER_RADIUS;
+        const thickEndY = sin(angle) * ZODIAC_OUTER_RADIUS;
+        line(thickStartX, thickStartY, thickEndX, thickEndY);
     });
     
     // Draw the main axes on top, thicker, and label them
@@ -184,7 +225,6 @@ function drawHouseLinesAndNumbers() {
             const endX = cos(angle) * ZODIAC_INNER_RADIUS;
             const endY = sin(angle) * ZODIAC_INNER_RADIUS;
             line(startX, startY, endX, endY);
-            
             fill(0); noStroke(); textSize(12);
             text(planetSymbols[point.name], cos(angle) * (ZODIAC_INNER_RADIUS - 10), sin(angle) * (ZODIAC_INNER_RADIUS - 10));
         }
@@ -283,7 +323,7 @@ function drawPlanets() {
     rotate(angle + 90); // Rotate to align with radial direction
     textAlign(CENTER, CENTER);
     fill(0); textSize(12); text(p.degree, 0, -10);
-    fill(ZODIAC_GLYPH_COLOR); textSize(12); text(zodiacSymbols[p.sign], 0, 4);
+    fill(zodiacColors[p.sign]); textSize(12); text(zodiacSymbols[p.sign], 0, 4);
     fill(100); textSize(11); text(nf(p.minute, 2), 0, 18);
     if (p.isRetrograde) { fill('#FF0000'); textSize(10); text('Rx', 20, 18); }
     pop();
