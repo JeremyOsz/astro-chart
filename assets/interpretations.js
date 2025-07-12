@@ -385,6 +385,42 @@ window.interpretationsData = {
     "Pluto": {
       "description": "Transformation, power, death, rebirth, psychology, control, intensity, regeneration",
       "keywords": ["Transformation", "Power", "Death", "Rebirth", "Psychology", "Control", "Intensity", "Regeneration"]
+    },
+    "Node": {
+      "description": "Karmic path, soul purpose, destiny, life lessons, spiritual growth, past and future connections",
+      "keywords": ["Karma", "Destiny", "Soul Purpose", "Life Lessons", "Spiritual Growth", "Past Life", "Future Path"]
+    },
+    "Lilith": {
+      "description": "Dark feminine energy, independence, rebellion, sexuality, hidden desires, primal instincts",
+      "keywords": ["Dark Feminine", "Independence", "Rebellion", "Sexuality", "Hidden Desires", "Primal Energy", "Taboo"]
+    },
+    "Chiron": {
+      "description": "Wounded healer, deep wounds, healing abilities, mentorship, wisdom through pain, spiritual teaching",
+      "keywords": ["Wounded Healer", "Deep Wounds", "Healing", "Mentorship", "Wisdom", "Pain", "Teaching"]
+    },
+    "Fortune": {
+      "description": "Luck, prosperity, abundance, life purpose, material success, fortunate circumstances",
+      "keywords": ["Luck", "Prosperity", "Abundance", "Life Purpose", "Material Success", "Fortunate", "Opportunity"]
+    },
+    "Vertex": {
+      "description": "Fated encounters, destiny points, significant relationships, karmic connections, life-changing meetings",
+      "keywords": ["Fated Encounters", "Destiny Points", "Relationships", "Karmic Connections", "Life Changes", "Significant Others"]
+    },
+    "ASC": {
+      "description": "Ascendant, rising sign, first impressions, physical appearance, approach to life, outer personality",
+      "keywords": ["Ascendant", "Rising Sign", "First Impressions", "Appearance", "Approach", "Outer Self"]
+    },
+    "MC": {
+      "description": "Midheaven, career, public image, life goals, reputation, authority, highest aspirations",
+      "keywords": ["Midheaven", "Career", "Public Image", "Life Goals", "Reputation", "Authority", "Aspirations"]
+    },
+    "DSC": {
+      "description": "Descendant, partnerships, relationships, open enemies, what we seek in others, balance",
+      "keywords": ["Descendant", "Partnerships", "Relationships", "Enemies", "Balance", "Others", "Complement"]
+    },
+    "IC": {
+      "description": "Imum Coeli, home, family, roots, private life, emotional foundation, innermost self",
+      "keywords": ["Imum Coeli", "Home", "Family", "Roots", "Private Life", "Foundation", "Innermost Self"]
     }
   },
   "planetInSign": {
@@ -527,6 +563,76 @@ window.interpretationsData = {
       "Capricorn": "With Pluto in Capricorn, your generation experiences profound transformation and power struggles related to ambition, social structures, and authority. There's a collective urge to dismantle old systems, redefine success, and rebuild societal foundations.",
       "Aquarius": "With Pluto in Aquarius, your generation experiences profound transformation and power struggles related to innovation, collective ideals, and humanitarian causes. There's a collective urge to revolutionize society, empower groups, and challenge traditional power dynamics.",
       "Pisces": "With Pluto in Pisces, your generation experiences profound transformation and power struggles related to spirituality, compassion, and the collective unconscious. There's a collective urge to dissolve boundaries, confront hidden fears, and seek spiritual regeneration."
+    },
+    "Node": {
+      "Aries": "With the North Node in Aries, your soul's purpose involves developing independence, courage, and leadership. You are learning to assert yourself and take initiative. Your karmic path leads toward self-discovery and pioneering new territory.",
+      "Taurus": "With the North Node in Taurus, your soul's purpose involves developing stability, patience, and material security. You are learning to build solid foundations and appreciate the physical world. Your karmic path leads toward creating lasting value.",
+      "Gemini": "With the North Node in Gemini, your soul's purpose involves developing communication, curiosity, and intellectual growth. You are learning to gather and share information. Your karmic path leads toward connecting with others through ideas and learning.",
+      "Cancer": "With the North Node in Cancer, your soul's purpose involves developing emotional security, nurturing, and family connections. You are learning to care for others and create a sense of home. Your karmic path leads toward emotional fulfillment.",
+      "Leo": "With the North Node in Leo, your soul's purpose involves developing creativity, self-expression, and leadership. You are learning to shine and inspire others. Your karmic path leads toward authentic self-expression and generous leadership.",
+      "Virgo": "With the North Node in Virgo, your soul's purpose involves developing practical skills, service, and attention to detail. You are learning to be helpful and efficient. Your karmic path leads toward mastery through dedicated work.",
+      "Libra": "With the North Node in Libra, your soul's purpose involves developing harmony, relationships, and diplomacy. You are learning to create balance and work with others. Your karmic path leads toward partnership and justice.",
+      "Scorpio": "With the North Node in Scorpio, your soul's purpose involves developing depth, transformation, and psychological insight. You are learning to confront hidden truths and embrace change. Your karmic path leads toward profound personal evolution.",
+      "Sagittarius": "With the North Node in Sagittarius, your soul's purpose involves developing wisdom, philosophy, and expansion. You are learning to seek truth and explore new horizons. Your karmic path leads toward spiritual growth and higher learning.",
+      "Capricorn": "With the North Node in Capricorn, your soul's purpose involves developing discipline, ambition, and responsibility. You are learning to build lasting structures and achieve long-term goals. Your karmic path leads toward mastery and authority.",
+      "Aquarius": "With the North Node in Aquarius, your soul's purpose involves developing innovation, humanitarian ideals, and group consciousness. You are learning to contribute to collective progress. Your karmic path leads toward social reform and unique contributions.",
+      "Pisces": "With the North Node in Pisces, your soul's purpose involves developing compassion, spirituality, and universal love. You are learning to connect with the divine and serve others selflessly. Your karmic path leads toward spiritual transcendence."
+    },
+    "Lilith": {
+      "Aries": "With Lilith in Aries, your dark feminine energy expresses through fierce independence and raw passion. You refuse to be controlled and may challenge traditional gender roles. Your primal instincts drive you toward authentic self-expression.",
+      "Taurus": "With Lilith in Taurus, your dark feminine energy expresses through sensual rebellion and material independence. You may reject conventional beauty standards and find power in your natural sensuality. Your primal instincts connect you to earth energy.",
+      "Gemini": "With Lilith in Gemini, your dark feminine energy expresses through intellectual rebellion and unconventional communication. You may challenge traditional knowledge and express taboo ideas. Your primal instincts drive you toward mental freedom.",
+      "Cancer": "With Lilith in Cancer, your dark feminine energy expresses through emotional rebellion and protective instincts. You may reject traditional family roles and find power in your emotional depth. Your primal instincts drive you toward emotional authenticity.",
+      "Leo": "With Lilith in Leo, your dark feminine energy expresses through creative rebellion and dramatic self-expression. You may challenge traditional performance roles and find power in your unique creativity. Your primal instincts drive you toward authentic leadership.",
+      "Virgo": "With Lilith in Virgo, your dark feminine energy expresses through practical rebellion and perfectionist standards. You may reject traditional service roles and find power in your analytical abilities. Your primal instincts drive you toward mastery.",
+      "Libra": "With Lilith in Libra, your dark feminine energy expresses through relational rebellion and unconventional partnerships. You may challenge traditional relationship norms and find power in your diplomatic skills. Your primal instincts drive you toward authentic harmony.",
+      "Scorpio": "With Lilith in Scorpio, your dark feminine energy expresses through intense rebellion and sexual power. You may reject traditional taboos and find power in your psychological depth. Your primal instincts drive you toward transformation.",
+      "Sagittarius": "With Lilith in Sagittarius, your dark feminine energy expresses through philosophical rebellion and spiritual freedom. You may challenge traditional beliefs and find power in your quest for truth. Your primal instincts drive you toward expansion.",
+      "Capricorn": "With Lilith in Capricorn, your dark feminine energy expresses through structural rebellion and ambitious independence. You may reject traditional authority and find power in your strategic abilities. Your primal instincts drive you toward achievement.",
+      "Aquarius": "With Lilith in Aquarius, your dark feminine energy expresses through revolutionary rebellion and humanitarian ideals. You may challenge traditional social structures and find power in your unique vision. Your primal instincts drive you toward innovation.",
+      "Pisces": "With Lilith in Pisces, your dark feminine energy expresses through spiritual rebellion and mystical power. You may reject traditional spiritual dogma and find power in your intuitive abilities. Your primal instincts drive you toward transcendence."
+    },
+    "Chiron": {
+      "Aries": "With Chiron in Aries, your deepest wound relates to identity, courage, and self-assertion. You may have experienced early trauma around being yourself or taking initiative. Your healing comes through helping others find their courage and authentic voice.",
+      "Taurus": "With Chiron in Taurus, your deepest wound relates to security, values, and self-worth. You may have experienced early trauma around material stability or feeling valued. Your healing comes through helping others build security and appreciate their worth.",
+      "Gemini": "With Chiron in Gemini, your deepest wound relates to communication, learning, and mental confidence. You may have experienced early trauma around expressing ideas or intellectual development. Your healing comes through helping others communicate and learn.",
+      "Cancer": "With Chiron in Cancer, your deepest wound relates to emotional security, family, and nurturing. You may have experienced early trauma around home life or emotional support. Your healing comes through helping others create emotional security and family bonds.",
+      "Leo": "With Chiron in Leo, your deepest wound relates to creativity, self-expression, and recognition. You may have experienced early trauma around being seen or expressing your talents. Your healing comes through helping others find their creative voice and confidence.",
+      "Virgo": "With Chiron in Virgo, your deepest wound relates to perfection, service, and practical skills. You may have experienced early trauma around being helpful or meeting standards. Your healing comes through helping others develop practical skills and self-acceptance.",
+      "Libra": "With Chiron in Libra, your deepest wound relates to relationships, harmony, and fairness. You may have experienced early trauma around partnerships or justice. Your healing comes through helping others create balanced relationships and find harmony.",
+      "Scorpio": "With Chiron in Scorpio, your deepest wound relates to power, intimacy, and transformation. You may have experienced early trauma around control or deep emotional connections. Your healing comes through helping others navigate power dynamics and transformation.",
+      "Sagittarius": "With Chiron in Sagittarius, your deepest wound relates to beliefs, philosophy, and freedom. You may have experienced early trauma around truth-seeking or expansion. Your healing comes through helping others find their beliefs and expand their horizons.",
+      "Capricorn": "With Chiron in Capricorn, your deepest wound relates to achievement, authority, and structure. You may have experienced early trauma around success or responsibility. Your healing comes through helping others build lasting achievements and find their authority.",
+      "Aquarius": "With Chiron in Aquarius, your deepest wound relates to individuality, groups, and innovation. You may have experienced early trauma around fitting in or expressing uniqueness. Your healing comes through helping others find their unique contribution to society.",
+      "Pisces": "With Chiron in Pisces, your deepest wound relates to spirituality, compassion, and boundaries. You may have experienced early trauma around spiritual connection or emotional boundaries. Your healing comes through helping others develop spiritual awareness and healthy compassion."
+    },
+    "Fortune": {
+      "Aries": "With the Part of Fortune in Aries, your luck and abundance come through taking initiative and being courageous. You find prosperity when you lead and pioneer new territory. Your fortunate circumstances arise from your independent spirit and bold actions.",
+      "Taurus": "With the Part of Fortune in Taurus, your luck and abundance come through building stability and appreciating beauty. You find prosperity when you create lasting value and enjoy sensual pleasures. Your fortunate circumstances arise from your patience and practical approach.",
+      "Gemini": "With the Part of Fortune in Gemini, your luck and abundance come through communication and learning. You find prosperity when you share ideas and gather information. Your fortunate circumstances arise from your curiosity and social connections.",
+      "Cancer": "With the Part of Fortune in Cancer, your luck and abundance come through nurturing and creating emotional security. You find prosperity when you care for others and build a sense of home. Your fortunate circumstances arise from your emotional intelligence and protective instincts.",
+      "Leo": "With the Part of Fortune in Leo, your luck and abundance come through creativity and leadership. You find prosperity when you express your talents and inspire others. Your fortunate circumstances arise from your confidence and generous spirit.",
+      "Virgo": "With the Part of Fortune in Virgo, your luck and abundance come through service and attention to detail. You find prosperity when you help others and perfect your skills. Your fortunate circumstances arise from your practical abilities and helpful nature.",
+      "Libra": "With the Part of Fortune in Libra, your luck and abundance come through relationships and harmony. You find prosperity when you create balance and work with others. Your fortunate circumstances arise from your diplomatic skills and sense of justice.",
+      "Scorpio": "With the Part of Fortune in Scorpio, your luck and abundance come through transformation and shared resources. You find prosperity when you embrace change and work with others' resources. Your fortunate circumstances arise from your psychological insight and intensity.",
+      "Sagittarius": "With the Part of Fortune in Sagittarius, your luck and abundance come through expansion and philosophy. You find prosperity when you explore new horizons and share your wisdom. Your fortunate circumstances arise from your optimism and quest for truth.",
+      "Capricorn": "With the Part of Fortune in Capricorn, your luck and abundance come through discipline and achievement. You find prosperity when you work hard and build lasting structures. Your fortunate circumstances arise from your ambition and practical wisdom.",
+      "Aquarius": "With the Part of Fortune in Aquarius, your luck and abundance come through innovation and humanitarian causes. You find prosperity when you contribute to social progress and express your unique ideas. Your fortunate circumstances arise from your originality and group connections.",
+      "Pisces": "With the Part of Fortune in Pisces, your luck and abundance come through compassion and spirituality. You find prosperity when you serve others and connect with the divine. Your fortunate circumstances arise from your empathy and spiritual awareness."
+    },
+    "Vertex": {
+      "Aries": "With the Vertex in Aries, your fated encounters involve people who challenge you to be more independent and courageous. These relationships push you toward self-discovery and leadership. Significant meetings may involve pioneers or those who initiate change.",
+      "Taurus": "With the Vertex in Taurus, your fated encounters involve people who help you build stability and appreciate beauty. These relationships encourage you to create lasting value and enjoy sensual pleasures. Significant meetings may involve builders or those who value tradition.",
+      "Gemini": "With the Vertex in Gemini, your fated encounters involve people who stimulate your mind and expand your knowledge. These relationships encourage you to communicate and learn. Significant meetings may involve teachers or those who share information.",
+      "Cancer": "With the Vertex in Cancer, your fated encounters involve people who nurture your emotional needs and help you create security. These relationships encourage you to care for others and build a home. Significant meetings may involve caregivers or those who provide emotional support.",
+      "Leo": "With the Vertex in Leo, your fated encounters involve people who inspire your creativity and help you shine. These relationships encourage you to express your talents and lead others. Significant meetings may involve performers or those who bring out your confidence.",
+      "Virgo": "With the Vertex in Virgo, your fated encounters involve people who help you develop practical skills and serve others. These relationships encourage you to be helpful and perfect your abilities. Significant meetings may involve healers or those who teach you efficiency.",
+      "Libra": "With the Vertex in Libra, your fated encounters involve people who bring balance and harmony to your life. These relationships encourage you to work with others and seek justice. Significant meetings may involve diplomats or those who help you find equilibrium.",
+      "Scorpio": "With the Vertex in Scorpio, your fated encounters involve people who transform your life and help you confront deep truths. These relationships encourage you to embrace change and develop psychological insight. Significant meetings may involve therapists or those who challenge your boundaries.",
+      "Sagittarius": "With the Vertex in Sagittarius, your fated encounters involve people who expand your horizons and share their wisdom. These relationships encourage you to explore new possibilities and seek truth. Significant meetings may involve philosophers or those who broaden your perspective.",
+      "Capricorn": "With the Vertex in Capricorn, your fated encounters involve people who help you achieve your goals and build lasting structures. These relationships encourage you to work hard and develop authority. Significant meetings may involve mentors or those who teach you discipline.",
+      "Aquarius": "With the Vertex in Aquarius, your fated encounters involve people who inspire innovation and humanitarian ideals. These relationships encourage you to contribute to social progress and express your uniqueness. Significant meetings may involve visionaries or those who challenge conventional thinking.",
+      "Pisces": "With the Vertex in Pisces, your fated encounters involve people who connect you to spirituality and compassion. These relationships encourage you to serve others and develop mystical awareness. Significant meetings may involve healers or those who help you transcend boundaries."
     }
   }
 }
