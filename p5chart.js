@@ -133,7 +133,7 @@ function mousePressed() {
 function parseDataAndGenerateHouses() {
   chartData = data.split('\n').filter(line => line.trim() !== '').map(line => {
     const parts = line.split(',');
-    const [deg, min] = parts[2].replace('’', '').split('°');
+    const [deg, min] = parts[2].replace('' , '').split('°');
     const signIndex = zodiacSigns.indexOf(parts[1]);
     return {
       name: parts[0], sign: parts[1],
@@ -152,6 +152,20 @@ function parseDataAndGenerateHouses() {
   const mc = chartData.find(p => p.name === 'MC');
   const ic = { name: 'IC', absoluteDegree: (mc.absoluteDegree + 180) % 360 };
   chartData.push(dsc, ic);
+
+  // Assign houses to all chart bodies
+  const ascSignIndex = zodiacSigns.indexOf(asc.sign);
+  chartData.forEach(p => {
+    // Ensure sign is present for house calculation (for DSC, IC)
+    if (!p.sign) {
+      const signIndex = Math.floor(p.absoluteDegree / 30);
+      p.sign = zodiacSigns[signIndex];
+    }
+    const planetSignIndex = zodiacSigns.indexOf(p.sign);
+    let house = (planetSignIndex - ascSignIndex + 1);
+    if (house <= 0) house += 12;
+    p.house = house;
+  });
 }
 
 function calculateAspects() {
@@ -352,6 +366,14 @@ function drawPlanets() {
 
 // --- UI, Interactivity, and Helpers ---
 
+function getOrdinalSuffix(i) {
+    const j = i % 10, k = i % 100;
+    if (j === 1 && k !== 11) { return i + "st"; }
+    if (j === 2 && k !== 12) { return i + "nd"; }
+    if (j === 3 && k !== 13) { return i + "rd"; }
+    return i + "th";
+}
+
 function handleInteractivity() {
     const asc = chartData.find(p => p.name === 'ASC');
     if (!asc) return;
@@ -373,10 +395,15 @@ function handleInteractivity() {
             let interpretation = '';
             if (interpretations.planets[p.name]) {
                 interpretation = interpretations.planets[p.name].description;
-                // Optionally add keywords:
-                // if (interpretations.planets[p.name].keywords) {
-                //     interpretation += '\nKeywords: ' + interpretations.planets[p.name].keywords.join(', ');
-                // }
+            }
+            if (p.house && p.house !== -1) {
+                const houseKey = getOrdinalSuffix(p.house);
+                if (interpretations.houses[houseKey]) {
+                    interpretation += `\nIn the ${houseKey} House: ${interpretations.houses[houseKey]}`;
+                }
+            }
+            if (interpretations.planetInSign && interpretations.planetInSign[p.name] && interpretations.planetInSign[p.name][p.sign]) {
+                interpretation += `\nIn ${p.sign}: ${interpretations.planetInSign[p.name][p.sign]}`;
             }
             let tooltipText = info;
             if (interpretation) {
@@ -1000,6 +1027,148 @@ const interpretations = {
     "Pluto": {
       "description": "Transformation, power, death, rebirth, psychology, control, intensity, regeneration",
       "keywords": ["Transformation", "Power", "Death", "Rebirth", "Psychology", "Control", "Intensity", "Regeneration"]
+    }
+  },
+  "planetInSign": {
+    "Sun": {
+      "Aries": "With the Sun in Aries, your core identity is assertive, pioneering, and courageous. You are driven by a need to initiate and lead, and you approach life with enthusiasm and directness. You are independent and competitive, but can sometimes be impulsive or impatient.",
+      "Taurus": "With the Sun in Taurus, your core identity is grounded, stable, and sensual. You seek security and comfort, and you are known for your patience, determination, and loyalty. You have a deep appreciation for beauty and the material world, but can be stubborn and resistant to change.",
+      "Gemini": "With the Sun in Gemini, your core identity is curious, communicative, and adaptable. You are a natural-born learner and social connector, driven by a desire for variety and mental stimulation. You are witty and versatile, but can sometimes be scattered or inconsistent.",
+      "Cancer": "With the Sun in Cancer, your core identity is nurturing, sensitive, and protective. You are deeply connected to your emotions, family, and home. You are compassionate and intuitive, but can be moody or defensive when you feel insecure.",
+      "Leo": "With the Sun in Leo, your core identity is confident, creative, and generous. You are a natural leader with a flair for the dramatic, and you thrive in the spotlight. You are warm-hearted and loyal, but can be proud or attention-seeking.",
+      "Virgo": "With the Sun in Virgo, your core identity is practical, analytical, and service-oriented. You have a keen eye for detail and a desire to be helpful and efficient. You are diligent and methodical, but can be overly critical of yourself and others.",
+      "Libra": "With the Sun in Libra, your core identity is focused on harmony, justice, and relationships. You are a natural diplomat, driven by a need for balance and fairness. You are charming and sociable, but can be indecisive or people-pleasing.",
+      "Scorpio": "With the Sun in Scorpio, your core identity is intense, passionate, and perceptive. You are drawn to the deeper mysteries of life and have a powerful, transformative presence. You are loyal and resourceful, but can be secretive or controlling.",
+      "Sagittarius": "With the Sun in Sagittarius, your core identity is optimistic, adventurous, and philosophical. You are a truth-seeker, driven by a desire for freedom and expansion. You are open-minded and enthusiastic, but can be blunt or restless.",
+      "Capricorn": "With the Sun in Capricorn, your core identity is disciplined, ambitious, and responsible. You are a natural strategist, driven by a need for achievement and long-term security. You are patient and determined, but can be pessimistic or overly conventional.",
+      "Aquarius": "With the Sun in Aquarius, your core identity is innovative, independent, and humanitarian. You are a forward-thinker, driven by a desire for social progress and intellectual freedom. You are original and idealistic, but can be emotionally detached or rebellious.",
+      "Pisces": "With the Sun in Pisces, your core identity is compassionate, intuitive, and artistic. You are deeply connected to the spiritual and emotional realms, and you are a natural dreamer. You are empathetic and imaginative, but can be escapist or easily overwhelmed."
+    },
+    "Moon": {
+      "Aries": "With the Moon in Aries, your emotional responses are quick, direct, and passionate. You need excitement and independence to feel secure, and you are not afraid to take emotional risks. You can be impulsive and have a quick temper.",
+      "Taurus": "With the Moon in Taurus, your emotional nature is calm, stable, and seeks security. You find comfort in the familiar, and you need physical and material stability to feel emotionally content. You are loyal but can be possessive.",
+      "Gemini": "With the Moon in Gemini, your emotions are processed intellectually and expressed verbally. You need variety and mental stimulation to feel emotionally satisfied, and you enjoy talking about your feelings. You can seem emotionally detached at times.",
+      "Cancer": "With the Moon in Cancer, its natural home, your emotions are deep, powerful, and intuitive. You are highly sensitive and need a strong sense of emotional security, often found through home and family. You are nurturing and protective.",
+      "Leo": "With the Moon in Leo, your emotional expression is dramatic, warm, and generous. You need to feel appreciated and admired to be emotionally happy, and you are loyal and affectionate with loved ones. You can be proud and have a need for attention.",
+      "Virgo": "With the Moon in Virgo, your emotional nature is practical, analytical, and reserved. You show care through acts of service and by being helpful. You need order and routine to feel emotionally secure, and can be self-critical.",
+      "Libra": "With the Moon in Libra, you have a strong need for harmony and balance in your emotional life and relationships. You are a natural peacemaker and feel most secure when in a partnership. You may avoid conflict to maintain peace.",
+      "Scorpio": "With the Moon in Scorpio, your emotions are intense, passionate, and secretive. You form deep emotional bonds and have a powerful need for emotional honesty. You can be prone to jealousy and have a fear of betrayal.",
+      "Sagittarius": "With the Moon in Sagittarius, your emotional nature is optimistic, freedom-loving, and adventurous. You need space and new experiences to feel emotionally fulfilled. You are good-humored but can be uncomfortable with deep emotional displays.",
+      "Capricorn": "With the Moon in Capricorn, your emotional responses are disciplined, controlled, and serious. You seek security through achievement and responsibility. You may have difficulty expressing your feelings openly and can appear emotionally reserved.",
+      "Aquarius": "With the Moon in Aquarius, your emotional nature is detached, independent, and humanitarian. You are more comfortable with group feelings than with personal ones. You need intellectual freedom and may seem aloof or emotionally unavailable.",
+      "Pisces": "With the Moon in Pisces, you are highly sensitive, compassionate, and intuitive. Your emotional boundaries can be blurry, making you empathetic but also easily influenced by the moods of others. You have a rich inner world."
+    },
+    "Mercury": {
+      "Aries": "With Mercury in Aries, your communication style is direct, quick, and sometimes impulsive. You are a fast thinker and a decisive speaker, often eager to share new ideas. You can be assertive in your opinions, but may also be prone to interrupting or being blunt.",
+      "Taurus": "With Mercury in Taurus, your communication is thoughtful, steady, and practical. You take your time to process information and form opinions, and once you do, you are quite fixed in your views. You express yourself clearly and prefer concrete facts.",
+      "Gemini": "With Mercury in Gemini, your communication is highly versatile, curious, and quick-witted. You love to learn, gather information, and engage in diverse conversations. You are adaptable in your thinking but can sometimes be scattered or superficial.",
+      "Cancer": "With Mercury in Cancer, your communication is emotionally driven, intuitive, and sensitive. You process information through your feelings and tend to communicate with warmth and empathy. You may be hesitant to express yourself directly if you feel insecure.",
+      "Leo": "With Mercury in Leo, your communication is expressive, confident, and dramatic. You enjoy being heard and can be quite persuasive and entertaining in your speech. You are proud of your ideas and love to inspire others.",
+      "Virgo": "With Mercury in Virgo, your communication is analytical, precise, and practical. You have a sharp eye for detail and a logical approach to problem-solving. You are an effective communicator who values clarity and accuracy, but can be overly critical.",
+      "Libra": "With Mercury in Libra, your communication is diplomatic, fair, and charming. You strive for balance and harmony in your interactions, often weighing all sides of an issue. You are a good listener and seek consensus, but can be indecisive.",
+      "Scorpio": "With Mercury in Scorpio, your communication is intense, penetrating, and perceptive. You are drawn to hidden meanings and can uncover truths others miss. You are a powerful speaker and can be secretive or strategic in your words.",
+      "Sagittarius": "With Mercury in Sagittarius, your communication is broad-minded, optimistic, and philosophical. You love to explore big ideas and share your beliefs with enthusiasm. You can be blunt or tactless in your honesty, but your intentions are usually good.",
+      "Capricorn": "With Mercury in Capricorn, your communication is disciplined, logical, and practical. You have a serious and methodical approach to thinking and speaking, valuing structure and efficiency. You are a clear and authoritative communicator.",
+      "Aquarius": "With Mercury in Aquarius, your communication is innovative, intellectual, and independent. You enjoy discussing abstract concepts and challenging conventional thinking. You are original in your ideas but can sometimes be detached or dogmatic.",
+      "Pisces": "With Mercury in Pisces, your communication is intuitive, imaginative, and empathetic. You process information through your feelings and impressions, often expressing yourself through creative means. You can be vague or elusive, but deeply compassionate."
+    },
+    "Venus": {
+      "Aries": "With Venus in Aries, you express love and affection in a direct, passionate, and spontaneous way. You are attracted to excitement and often initiate romantic pursuits. You can be impulsive in relationships and value independence.",
+      "Taurus": "With Venus in Taurus, you express love and affection in a sensual, loyal, and stable manner. You seek comfort, security, and beauty in your relationships. You are deeply affectionate and value material pleasures and fidelity.",
+      "Gemini": "With Venus in Gemini, you express love and affection through communication, intellect, and variety. You are attracted to witty and mentally stimulating partners. You enjoy playful banter and need mental connection in relationships.",
+      "Cancer": "With Venus in Cancer, you express love and affection in a nurturing, sensitive, and protective way. You seek emotional security and deep connection in your relationships, often forming strong bonds with family and home. You are highly empathetic.",
+      "Leo": "With Venus in Leo, you express love and affection in a dramatic, generous, and warm-hearted manner. You love to be admired and show your affection grandly. You seek passion and loyalty, and enjoy being the center of attention in relationships.",
+      "Virgo": "With Venus in Virgo, you express love and affection through acts of service, practicality, and attention to detail. You show care by being helpful and reliable. You are attracted to intelligence and efficiency, but can be critical of yourself and others in love.",
+      "Libra": "With Venus in Libra, its natural home, you express love and affection in a harmonious, diplomatic, and aesthetically pleasing way. You thrive in partnerships and seek balance and fairness in all relationships. You are charming and seek equality.",
+      "Scorpio": "With Venus in Scorpio, you express love and affection with intensity, passion, and depth. You seek profound emotional and physical intimacy, and are drawn to transformative relationships. You can be possessive and secretive in love.",
+      "Sagittarius": "With Venus in Sagittarius, you express love and affection in an adventurous, optimistic, and freedom-loving way. You are attracted to partners who share your desire for exploration and growth. You value honesty and open-mindedness in relationships.",
+      "Capricorn": "With Venus in Capricorn, you express love and affection in a reserved, responsible, and practical manner. You approach relationships seriously and seek long-term commitment and security. You value loyalty and respect, and can be slow to open up.",
+      "Aquarius": "With Venus in Aquarius, you express love and affection in an independent, unconventional, and intellectual way. You are attracted to unique and stimulating individuals. You value friendship and mental connection in relationships, often preferring platonic bonds.",
+      "Pisces": "With Venus in Pisces, you express love and affection in a compassionate, idealistic, and deeply empathetic way. You are a romantic dreamer, seeking a soul connection. You are highly sensitive and selfless in love, but can be prone to idealizing others."
+    },
+    "Mars": {
+      "Aries": "With Mars in Aries, its natural home, your drive and assertiveness are direct, pioneering, and courageous. You are a natural initiator, eager to take action and lead. You can be impulsive and competitive, but also incredibly dynamic and energetic.",
+      "Taurus": "With Mars in Taurus, your drive and assertiveness are slow, steady, and persistent. You take your time to act, but once committed, you are unyielding and determined. You are motivated by comfort and security, and can be stubborn in your pursuits.",
+      "Gemini": "With Mars in Gemini, your drive and assertiveness are expressed through communication, quick thinking, and adaptability. You are motivated by mental stimulation and can pursue multiple interests at once. You may be prone to scattering your energy or being argumentative.",
+      "Cancer": "With Mars in Cancer, your drive and assertiveness are emotionally motivated and protective. You take action to defend your home, family, and those you care about. You can be indirect in your approach and prone to mood-driven actions.",
+      "Leo": "With Mars in Leo, your drive and assertiveness are expressed with confidence, creativity, and a need for recognition. You are motivated by a desire to shine and lead, often pursuing goals with flair and drama. You can be proud and attention-seeking.",
+      "Virgo": "With Mars in Virgo, your drive and assertiveness are practical, analytical, and precise. You are motivated by a desire to be efficient and helpful, often taking a methodical approach to your work. You can be critical and prone to overthinking before acting.",
+      "Libra": "With Mars in Libra, your drive and assertiveness are focused on harmony, fairness, and partnership. You are motivated by a need for balance and often seek collaboration. You may avoid direct confrontation, preferring diplomacy, but can be passive-aggressive.",
+      "Scorpio": "With Mars in Scorpio, its natural home, your drive and assertiveness are intense, strategic, and transformative. You are motivated by deep desires and can pursue your goals with powerful determination. You are resourceful and fearless, but can be controlling or vengeful.",
+      "Sagittarius": "With Mars in Sagittarius, your drive and assertiveness are adventurous, optimistic, and philosophical. You are motivated by freedom, exploration, and a quest for truth. You take action based on your beliefs and can be blunt or restless.",
+      "Capricorn": "With Mars in Capricorn, your drive and assertiveness are disciplined, ambitious, and strategic. You are motivated by achievement and long-term goals, taking a patient and methodical approach to success. You are persistent and effective.",
+      "Aquarius": "With Mars in Aquarius, your drive and assertiveness are innovative, independent, and humanitarian. You are motivated by social change and unconventional ideas, often acting for the good of a group. You can be rebellious or detached in your approach.",
+      "Pisces": "With Mars in Pisces, your drive and assertiveness are intuitive, compassionate, and sometimes elusive. You are motivated by empathy and idealism, often acting on behalf of others. You can be prone to indecision or passive resistance, but are deeply imaginative in your actions."
+    },
+    "Jupiter": {
+      "Aries": "With Jupiter in Aries, your growth and luck come through pioneering, taking initiative, and being courageous. You are optimistic and enthusiastic about new beginnings, and you expand through assertive action. You may be prone to overconfidence.",
+      "Taurus": "With Jupiter in Taurus, your growth and luck come through stability, practical endeavors, and appreciating the material world. You find abundance in consistency and sensual pleasures. You may be prone to indulgence or resistance to change.",
+      "Gemini": "With Jupiter in Gemini, your growth and luck come through communication, learning, and sharing ideas. You expand your horizons through intellectual pursuits and diverse social connections. You may be prone to scattering your energy or superficiality.",
+      "Cancer": "With Jupiter in Cancer, your growth and luck come through nurturing, emotional security, and family connections. You find abundance in your home life and by caring for others. You are compassionate and intuitive, and may be prone to over-nurturing.",
+      "Leo": "With Jupiter in Leo, your growth and luck come through creative expression, generosity, and confident leadership. You find abundance when you share your talents and inspire others. You may be prone to grandiosity or seeking excessive attention.",
+      "Virgo": "With Jupiter in Virgo, your growth and luck come through practical service, attention to detail, and methodical improvement. You find abundance in efficiency and helping others. You may be prone to over-analysis or perfectionism.",
+      "Libra": "With Jupiter in Libra, your growth and luck come through harmonious relationships, diplomacy, and seeking justice. You find abundance through partnership and collaboration. You may be prone to indecision or people-pleasing.",
+      "Scorpio": "With Jupiter in Scorpio, your growth and luck come through deep transformation, intense research, and understanding hidden truths. You find abundance in shared resources and profound experiences. You may be prone to obsession or secretive dealings.",
+      "Sagittarius": "With Jupiter in Sagittarius, its natural home, your growth and luck come through philosophy, travel, and expanding your worldview. You are naturally optimistic and find abundance in seeking truth and freedom. You may be prone to bluntness or restlessness.",
+      "Capricorn": "With Jupiter in Capricorn, your growth and luck come through discipline, hard work, and achieving practical goals. You find abundance through structured effort and responsibility. You may be prone to pessimism or being overly conventional.",
+      "Aquarius": "With Jupiter in Aquarius, your growth and luck come through innovation, humanitarian causes, and intellectual freedom. You find abundance in group efforts and progressive ideas. You may be prone to emotional detachment or rebelliousness.",
+      "Pisces": "With Jupiter in Pisces, your growth and luck come through compassion, spirituality, and artistic expression. You find abundance in empathy and connecting to the universal flow. You may be prone to escapism or being overly trusting."
+    },
+    "Saturn": {
+      "Aries": "With Saturn in Aries, you learn discipline and responsibility in areas of self-assertion and initiative. You may face challenges in expressing your independence or overcoming impulsiveness. Lessons revolve around patience and developing self-control.",
+      "Taurus": "With Saturn in Taurus, you learn discipline and responsibility in areas of material security and values. You may face challenges related to financial stability or adapting to change. Lessons revolve around building solid foundations and managing resources wisely.",
+      "Gemini": "With Saturn in Gemini, you learn discipline and responsibility in areas of communication and intellect. You may face challenges with consistency in learning or expressing ideas. Lessons revolve around focused thinking and clear, structured communication.",
+      "Cancer": "With Saturn in Cancer, you learn discipline and responsibility in areas of emotional security and home. You may face challenges related to family dynamics or feeling emotionally vulnerable. Lessons revolve around establishing emotional boundaries and self-nurturing.",
+      "Leo": "With Saturn in Leo, you learn discipline and responsibility in areas of self-expression and creativity. You may face challenges in gaining recognition or expressing your unique talents. Lessons revolve around building authentic confidence and disciplined creative effort.",
+      "Virgo": "With Saturn in Virgo, you learn discipline and responsibility in areas of work, service, and daily routines. You may face challenges with perfectionism or anxiety about details. Lessons revolve around developing practical skills and effective organization.",
+      "Libra": "With Saturn in Libra, its exaltation, you learn discipline and responsibility in areas of relationships and justice. You may face challenges in partnerships or seeking fairness. Lessons revolve around commitment, compromise, and establishing equitable bonds.",
+      "Scorpio": "With Saturn in Scorpio, you learn discipline and responsibility in areas of intensity, shared resources, and transformation. You may face challenges with control, trust, or confronting deep issues. Lessons revolve around emotional resilience and managing power dynamics.",
+      "Sagittarius": "With Saturn in Sagittarius, you learn discipline and responsibility in areas of philosophy, higher learning, and personal beliefs. You may face challenges with dogmatism or a sense of restlessness. Lessons revolve around structuring your worldview and committing to a path.",
+      "Capricorn": "With Saturn in Capricorn, its natural home, you learn discipline and responsibility in areas of ambition, career, and public status. You are driven to achieve long-term goals and build a solid reputation. Lessons revolve around perseverance, integrity, and leadership.",
+      "Aquarius": "With Saturn in Aquarius, you learn discipline and responsibility in areas of innovation, groups, and humanitarian causes. You may face challenges in fitting in or expressing your individuality. Lessons revolve around structured social reform and contributing to the collective.",
+      "Pisces": "With Saturn in Pisces, you learn discipline and responsibility in areas of spirituality, compassion, and intuition. You may face challenges with boundaries, escapism, or self-pity. Lessons revolve around grounding your spiritual insights and compassionate service."
+    },
+    "Uranus": {
+      "Aries": "With Uranus in Aries, your need for freedom and innovation is expressed through pioneering and assertive action. You are a revolutionary who initiates change and challenges the status quo. This generation seeks breakthroughs in self-identity and leadership.",
+      "Taurus": "With Uranus in Taurus, your need for freedom and innovation is expressed through material values, resources, and stability. This generation seeks breakthroughs in economics, environmentalism, and alternative wealth. There may be disruptions to established financial systems.",
+      "Gemini": "With Uranus in Gemini, your need for freedom and innovation is expressed through communication, information, and intellectual pursuits. This generation seeks breakthroughs in technology, education, and how ideas are exchanged. There may be rapid shifts in thought.",
+      "Cancer": "With Uranus in Cancer, your need for freedom and innovation is expressed through home, family, and emotional security. This generation seeks breakthroughs in domestic life, living arrangements, and the definition of family. There may be disruptions to traditional foundations.",
+      "Leo": "With Uranus in Leo, your need for freedom and innovation is expressed through creativity, self-expression, and leadership. This generation seeks breakthroughs in art, entertainment, and how individuality is celebrated. There may be unconventional expressions of self.",
+      "Virgo": "With Uranus in Virgo, your need for freedom and innovation is expressed through work, health, and practical systems. This generation seeks breakthroughs in technology, medicine, and daily routines. There may be disruptions to traditional work structures or health practices.",
+      "Libra": "With Uranus in Libra, your need for freedom and innovation is expressed through relationships, justice, and social harmony. This generation seeks breakthroughs in partnerships, equality, and diplomatic approaches. There may be unconventional relationship models.",
+      "Scorpio": "With Uranus in Scorpio, your need for freedom and innovation is expressed through transformation, shared resources, and hidden power dynamics. This generation seeks breakthroughs in psychology, finance, and confronting taboos. There may be intense disruptions to established power structures.",
+      "Sagittarius": "With Uranus in Sagittarius, your need for freedom and innovation is expressed through philosophy, higher education, and global exploration. This generation seeks breakthroughs in belief systems, travel, and expanding consciousness. There may be challenges to traditional truths.",
+      "Capricorn": "With Uranus in Capricorn, your need for freedom and innovation is expressed through ambition, social structures, and traditional institutions. This generation seeks breakthroughs in government, corporations, and established hierarchies. There may be sudden shifts in societal order.",
+      "Aquarius": "With Uranus in Aquarius, its natural home, your need for freedom and innovation is expressed through humanitarian ideals, group dynamics, and technological advancement. This generation seeks breakthroughs in social progress and collective consciousness. They are true visionaries.",
+      "Pisces": "With Uranus in Pisces, your need for freedom and innovation is expressed through spirituality, compassion, and the collective unconscious. This generation seeks breakthroughs in healing, art, and understanding the mystical. There may be disruptions to religious or spiritual dogmas."
+    },
+    "Neptune": {
+      "Aries": "With Neptune in Aries, your idealism and spiritual inspiration are expressed through pioneering action and self-discovery. This generation explores new spiritual paths and may be drawn to charismatic leaders. There can be confusion around identity and aggression.",
+      "Taurus": "With Neptune in Taurus, your idealism and spiritual inspiration are expressed through material values, art, and nature. This generation seeks spiritual connection through beauty and the physical world. There can be confusion or idealism around money and resources.",
+      "Gemini": "With Neptune in Gemini, your idealism and spiritual inspiration are expressed through communication, education, and diverse ideas. This generation seeks spiritual meaning through mental exploration and new forms of media. There can be confusion or deception in information.",
+      "Cancer": "With Neptune in Cancer, your idealism and spiritual inspiration are expressed through home, family, and emotional nurturing. This generation seeks spiritual connection through empathy and collective memory. There can be confusion or idealization of family bonds.",
+      "Leo": "With Neptune in Leo, your idealism and spiritual inspiration are expressed through creativity, self-expression, and leadership. This generation seeks spiritual meaning through dramatic arts and inspiring others. There can be confusion or glamorization of power.",
+      "Virgo": "With Neptune in Virgo, your idealism and spiritual inspiration are expressed through service, health, and practical systems. This generation seeks spiritual meaning through helping others and perfecting daily life. There can be confusion around details or health matters.",
+      "Libra": "With Neptune in Libra, your idealism and spiritual inspiration are expressed through relationships, justice, and aesthetics. This generation seeks spiritual connection through harmonious partnerships and ideal beauty. There can be confusion or disillusionment in relationships.",
+      "Scorpio": "With Neptune in Scorpio, your idealism and spiritual inspiration are expressed through transformation, shared resources, and the mysteries of life. This generation seeks spiritual meaning through profound emotional experiences and the occult. There can be confusion or blurring of boundaries in power dynamics.",
+      "Sagittarius": "With Neptune in Sagittarius, your idealism and spiritual inspiration are expressed through philosophy, religion, and global understanding. This generation seeks spiritual truth through expanded consciousness and diverse belief systems. There can be confusion or disillusionment in spiritual dogma.",
+      "Capricorn": "With Neptune in Capricorn, your idealism and spiritual inspiration are expressed through social structures, ambition, and tradition. This generation seeks spiritual meaning through established institutions and practical goals. There can be confusion or idealization of authority.",
+      "Aquarius": "With Neptune in Aquarius, your idealism and spiritual inspiration are expressed through humanitarian ideals, technology, and group consciousness. This generation seeks spiritual meaning through collective progress and innovative thinking. There can be confusion or idealization of social movements.",
+      "Pisces": "With Neptune in Pisces, its natural home, your idealism and spiritual inspiration are expressed through compassion, intuition, and artistic endeavors. This generation seeks spiritual union and transcendence through empathy and imagination. There can be confusion of boundaries or escapism."
+    },
+    "Pluto": {
+      "Aries": "With Pluto in Aries, your generation experiences profound transformation and power struggles related to self-identity, leadership, and initiation. There's a collective urge to assert individuality and break from the past, leading to radical shifts in societal power.",
+      "Taurus": "With Pluto in Taurus, your generation experiences profound transformation and power struggles related to values, resources, and material security. There's a collective urge to redefine wealth and examine humanity's relationship with the earth.",
+      "Gemini": "With Pluto in Gemini, your generation experiences profound transformation and power struggles related to communication, information, and intellectual thought. There's a collective urge to uncover hidden truths and expose deception in media and education.",
+      "Cancer": "With Pluto in Cancer, your generation experiences profound transformation and power struggles related to home, family, and emotional security. There's a collective urge to redefine domestic structures and confront deep emotional patterns within families and nations.",
+      "Leo": "With Pluto in Leo, your generation experiences profound transformation and power struggles related to self-expression, creativity, and leadership. There's a collective urge to redefine authority and express individuality in powerful ways, often through dramatic means.",
+      "Virgo": "With Pluto in Virgo, your generation experiences profound transformation and power struggles related to work, health, and practical systems. There's a collective urge to reform daily routines, address health crises, and empower individuals through meticulous organization.",
+      "Libra": "With Pluto in Libra, your generation experiences profound transformation and power struggles related to relationships, justice, and diplomacy. There's a collective urge to redefine partnerships, confront imbalances, and seek profound equality in social interactions.",
+      "Scorpio": "With Pluto in Scorpio, its natural home, your generation experiences profound transformation and power struggles related to death, rebirth, intimacy, and shared power. There's a collective urge to confront taboos, uncover deep psychological truths, and engage in intense change.",
+      "Sagittarius": "With Pluto in Sagittarius, your generation experiences profound transformation and power struggles related to philosophy, religion, and global understanding. There's a collective urge to redefine belief systems, explore new horizons, and confront dogmatism.",
+      "Capricorn": "With Pluto in Capricorn, your generation experiences profound transformation and power struggles related to ambition, social structures, and authority. There's a collective urge to dismantle old systems, redefine success, and rebuild societal foundations.",
+      "Aquarius": "With Pluto in Aquarius, your generation experiences profound transformation and power struggles related to innovation, collective ideals, and humanitarian causes. There's a collective urge to revolutionize society, empower groups, and challenge traditional power dynamics.",
+      "Pisces": "With Pluto in Pisces, your generation experiences profound transformation and power struggles related to spirituality, compassion, and the collective unconscious. There's a collective urge to dissolve boundaries, confront hidden fears, and seek spiritual regeneration."
     }
   }
 } 
