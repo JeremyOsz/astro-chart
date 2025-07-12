@@ -15,6 +15,11 @@ let chartSize = 800;
 let isMobile = false;
 let isTablet = false;
 
+// Zoom variables
+let currentZoom = 1;
+let minZoom = 0.5;
+let maxZoom = 3;
+
 // Layout constants
 let ZODIAC_OUTER_RADIUS = 350;
 let ZODIAC_INNER_RADIUS = 300;
@@ -86,6 +91,7 @@ async function initChart() {
 async function loadInterpretations() {
   // Use the global interpretations data loaded from the script tag
   if (window.interpretationsData) {
+    console.log('Interpretations loaded:', window.interpretationsData);
     interpretations = window.interpretationsData;
   } else {
     console.warn('Interpretations data not found');
@@ -103,7 +109,7 @@ function detectDeviceType() {
 // Set responsive parameters
 function setResponsiveParameters() {
   if (isMobile) {
-    chartSize = 350;
+    chartSize = 300;
     ZODIAC_OUTER_RADIUS = 150;
     ZODIAC_INNER_RADIUS = 130;
     PLANET_RING_RADIUS = 115;
@@ -270,10 +276,47 @@ function createChart() {
   const svg = container.append('svg')
     .attr('width', chartSize)
     .attr('height', chartSize)
-    .attr('viewBox', `0 0 ${chartSize} ${chartSize}`);
+    .attr('viewBox', `0 0 ${chartSize} ${chartSize}`)
+    .style('cursor', 'grab')
+    .style('touch-action', 'none'); // Prevent default touch behaviors
   
   const g = svg.append('g')
     .attr('transform', `translate(${chartSize/2}, ${chartSize/2})`);
+  
+  // Create zoom behavior
+  const zoom = d3.zoom()
+    .scaleExtent([minZoom, maxZoom])
+    .on('zoom', function(event) {
+      const { transform } = event;
+      currentZoom = transform.k;
+      
+      // Apply zoom transform to the main group
+      g.attr('transform', `translate(${chartSize/2}, ${chartSize/2}) scale(${transform.k}) translate(${transform.x / transform.k}, ${transform.y / transform.k})`);
+      
+      // Update zoom level display
+      const zoomLevelText = document.getElementById('zoom-level-text');
+      if (zoomLevelText) {
+        zoomLevelText.textContent = Math.round(transform.k * 100) + '%';
+      }
+      
+      // Update cursor style
+      svg.style('cursor', event.sourceEvent && event.sourceEvent.type === 'mousedown' ? 'grabbing' : 'grab');
+    })
+    .on('end', function() {
+      // Reset cursor when zoom ends
+      svg.style('cursor', 'grab');
+    });
+  
+  // Apply zoom to SVG
+  svg.call(zoom);
+  
+  // Add double-click to reset zoom
+  svg.on('dblclick', function() {
+    svg.transition().duration(300).call(
+      zoom.transform,
+      d3.zoomIdentity
+    );
+  });
   
   const asc = chartData.find(p => p.planet === 'ASC');
   const ascAngle = asc ? asc.angle : 0;
@@ -314,7 +357,7 @@ function drawZodiacWheel(g, ascAngle) {
     .attr('r', ZODIAC_OUTER_RADIUS)
     .attr('fill', 'none')
     .attr('stroke', '#ccc')
-    .attr('stroke-width', 1);
+    .attr('stroke-width', isMobile ? 1 : 2);
 
   // Inner circle
   g.append('circle')
@@ -323,7 +366,7 @@ function drawZodiacWheel(g, ascAngle) {
     .attr('r', ZODIAC_INNER_RADIUS)
     .attr('fill', 'none')
     .attr('stroke', '#ccc')
-    .attr('stroke-width', 1);
+    .attr('stroke-width', isMobile ? 1 : 2);
 
   // Zodiac sign backgrounds
   zodiacSigns.forEach((sign, index) => {
@@ -341,7 +384,7 @@ function drawZodiacWheel(g, ascAngle) {
     g.append('path')
       .attr('d', arc)
       .attr('fill', 'none')
-      .attr('stroke-width', 2)
+      .attr('stroke-width', isMobile ? 1 : 2)
       .attr('opacity', 0.6);
   });
 
@@ -380,7 +423,7 @@ function drawZodiacWheel(g, ascAngle) {
     const signEnd = (180 - (((index + 1) * 30) - ascAngle));
     const signMid = (signStart + signEnd) / 2;
     const angle = signMid * Math.PI / 180;
-    const symbolRadius = ZODIAC_INNER_RADIUS + 25;
+    const symbolRadius = isMobile ? ZODIAC_INNER_RADIUS + 13 : ZODIAC_INNER_RADIUS + 25;
     const x = Math.cos(angle) * symbolRadius;
     const y = Math.sin(angle) * symbolRadius;
     g.append('text')
@@ -389,7 +432,7 @@ function drawZodiacWheel(g, ascAngle) {
       .attr('text-anchor', 'middle')
       .attr('dominant-baseline', 'middle')
       .attr('font-family', 'Noto Sans Symbols, Arial, sans-serif')
-      .attr('font-size', isMobile ? 20 : 24)
+      .attr('font-size', isMobile ? 10 : 24)
       .attr('fill', zodiacColors[sign])
       .text(zodiacSymbols[sign]);
   });
@@ -409,7 +452,7 @@ function drawHouseLinesAndNumbers(g, ascAngle) {
       .attr('x2', Math.cos(angle) * ZODIAC_INNER_RADIUS)
       .attr('y2', Math.sin(angle) * ZODIAC_INNER_RADIUS)
       .attr('stroke', isAxis ? '#777' : '#ddd')
-      .attr('stroke-width', isAxis ? 2 : 1);
+      .attr('stroke-width', isAxis ? (isMobile ? 1.2 : 2) : (isMobile ? 0.7 : 1));
   });
   
   axes.forEach(point => {
@@ -419,7 +462,7 @@ function drawHouseLinesAndNumbers(g, ascAngle) {
       .attr('y', Math.sin(angle) * (ZODIAC_INNER_RADIUS - 15))
       .attr('text-anchor', 'middle')
       .attr('dominant-baseline', 'middle')
-      .attr('font-size', isMobile ? 12: 14)
+      .attr('font-size', isMobile ? 9 : 14)
       .attr('fill', '#555')
       .text(planetSymbols[point.planet]);
   });
@@ -433,7 +476,7 @@ function drawHouseLinesAndNumbers(g, ascAngle) {
       .attr('x', x).attr('y', y)
       .attr('text-anchor', 'middle')
       .attr('dominant-baseline', 'middle')
-      .attr('font-size', isMobile ? 12 : 14)
+      .attr('font-size', isMobile ? 9 : 14)
       .attr('fill', '#ccc')
       .text(cusp.house);
   });
@@ -472,7 +515,7 @@ function drawAspects(g, ascAngle) {
       return Math.sin(angle2) * ASPECT_HUB_RADIUS;
     })
     .attr('stroke', d => d.color)
-    .attr('stroke-width', d => d.weight)
+    .attr('stroke-width', d => isMobile ? d.weight * 0.7 : d.weight)
     .attr('stroke-dasharray', d => d.style === 'dotted' ? '1,3' : d.style === 'dashed' ? '4,4' : 'none');
 
   aspectSelection.exit().remove();
@@ -503,7 +546,7 @@ function drawPlanets(g, ascAngle, planetsToDraw) {
     .attr('text-anchor', 'middle')
     .attr('dominant-baseline', 'middle')
     .attr('font-family', 'Noto Sans Symbols, Arial, sans-serif')
-    .attr('font-size', isMobile ? 22 : 28)
+    .attr('font-size', isMobile ? 12 : 28)
     .attr('fill', d => d.isRetrograde ? '#e53935' : '#000')
     .text(d => planetSymbols[d.planet] || d.planet);
 
@@ -525,39 +568,60 @@ function drawPlanets(g, ascAngle, planetsToDraw) {
     g.append('line')
       .attr('x1', notchStartX).attr('y1', notchStartY)
       .attr('x2', notchEndX).attr('y2', notchEndY)
-      .attr('stroke', '#000').attr('stroke-width', 2);
+      .attr('stroke', '#000').attr('stroke-width', isMobile ? 1 : 2);
 
     // Draw radial label block at its own radius
     const labelGroup = g.append('g')
       .attr('transform', `translate(${labelX}, ${labelY}) rotate(${displayAngle + 90})`);
 
-    labelGroup.append('text')
-      .attr('text-anchor', 'middle')
-      .attr('y', -10)
-      .attr('font-size', isMobile ? 11 : 12)
-      .attr('fill', '#444')
-      .text(p.degree);
-    labelGroup.append('text')
-      .attr('text-anchor', 'middle')
-      .attr('y', 4)
-      .attr('font-family', 'Noto Sans Symbols, Arial, sans-serif')
-      .attr('font-size', isMobile ? 11 : 12)
-      .attr('fill', zodiacColors[p.sign])
-      .text(zodiacSymbols[p.sign]);
-    labelGroup.append('text')
-      .attr('text-anchor', 'middle')
-      .attr('y', 18)
-      .attr('font-size', isMobile ? 10 : 11)
-      .attr('fill', '#777')
-      .text(p.minute.toString().padStart(2, '0'));
-    if (p.isRetrograde) {
+    if (isMobile) {
+      // Only show sign symbol and Rx
       labelGroup.append('text')
-        .attr('text-anchor', 'start')
-        .attr('x', 12)
+        .attr('text-anchor', 'middle')
+        .attr('y', 4)
+        .attr('font-family', 'Noto Sans Symbols, Arial, sans-serif')
+        .attr('font-size', 9)
+        .attr('fill', zodiacColors[p.sign])
+        .text(zodiacSymbols[p.sign]);
+      if (p.isRetrograde) {
+        labelGroup.append('text')
+          .attr('text-anchor', 'start')
+          .attr('x', 12)
+          .attr('y', 18)
+          .attr('font-size', 8)
+          .attr('fill', '#e53935')
+          .text('Rx');
+      }
+    } else {
+      // Desktop/tablet: show degree, sign, minute, Rx
+      labelGroup.append('text')
+        .attr('text-anchor', 'middle')
+        .attr('y', -10)
+        .attr('font-size', 12)
+        .attr('fill', '#444')
+        .text(p.degree);
+      labelGroup.append('text')
+        .attr('text-anchor', 'middle')
+        .attr('y', 4)
+        .attr('font-family', 'Noto Sans Symbols, Arial, sans-serif')
+        .attr('font-size', 12)
+        .attr('fill', zodiacColors[p.sign])
+        .text(zodiacSymbols[p.sign]);
+      labelGroup.append('text')
+        .attr('text-anchor', 'middle')
         .attr('y', 18)
-        .attr('font-size', isMobile ? 9 : 10)
-        .attr('fill', '#e53935')
-        .text('Rx');
+        .attr('font-size', 11)
+        .attr('fill', '#777')
+        .text(p.minute.toString().padStart(2, '0'));
+      if (p.isRetrograde) {
+        labelGroup.append('text')
+          .attr('text-anchor', 'start')
+          .attr('x', 12)
+          .attr('y', 18)
+          .attr('font-size', 10)
+          .attr('fill', '#e53935')
+          .text('Rx');
+      }
     }
   });
 }
@@ -619,8 +683,13 @@ function addInteractivity(g, ascAngle) {
     if (!tooltipNode) return;
     const { innerWidth, innerHeight } = window;
     const rect = tooltipNode.getBoundingClientRect();
-    let left = event.pageX + 16;
-    let top = event.pageY - 10;
+
+    // Handle both mouse and touch events for correct coordinates
+    const pos = event.touches ? event.touches[0] : event;
+    if (!pos || typeof pos.pageX !== 'number') { return; } // Exit if no position data
+
+    let left = pos.pageX + 16;
+    let top = pos.pageY - 10;
     if (left + rect.width + padding > innerWidth) {
       left = innerWidth - rect.width - padding;
     }
@@ -631,35 +700,51 @@ function addInteractivity(g, ascAngle) {
     tooltip.style('left', left + 'px').style('top', top + 'px');
   }
 
-  // Planet tooltips
+  let tooltipVisible = false;
+
+  // Planet tooltips on click/tap
   g.selectAll('.planet-glyph')
     .style('cursor', 'pointer')
-    .on('mouseover', function(event, d) {
-      console.log('Planet mouseover', d);
-      const interpretation = getPlanetInterpretation(d);
-      showTooltip(event, interpretation, tooltip, positionTooltip);
-    })
-    .on('mousemove', function(event) {
-      positionTooltip(event, tooltip);
-    })
-    .on('mouseout', function() {
-      hideTooltip(tooltip);
+    .on('click', function(event, d) {
+      event.stopPropagation();
+      const wasVisible = tooltip.style('opacity') === '1' && tooltip.datum() === d;
+      
+      if (wasVisible) {
+        hideTooltip(tooltip);
+        tooltipVisible = false;
+      } else {
+        const interpretation = getPlanetInterpretation(d);
+        tooltip.datum(d); // Store data to check for same-element clicks
+        showTooltip(event, interpretation, tooltip, positionTooltip);
+        tooltipVisible = true;
+      }
     });
 
-  // Aspect tooltips
+  // Aspect tooltips on click/tap
   g.selectAll('.aspect-line')
     .style('cursor', 'pointer')
-    .on('mouseover', function(event, d) {
-      console.log('Aspect mouseover', d);
-      const interpretation = getAspectInterpretation(d);
-      showTooltip(event, interpretation, tooltip, positionTooltip);
-    })
-    .on('mousemove', function(event) {
-      positionTooltip(event, tooltip);
-    })
-    .on('mouseout', function() {
-      hideTooltip(tooltip);
+    .on('click', function(event, d) {
+      event.stopPropagation();
+      const wasVisible = tooltip.style('opacity') === '1' && tooltip.datum() === d;
+      
+      if (wasVisible) {
+        hideTooltip(tooltip);
+        tooltipVisible = false;
+      } else {
+        const interpretation = getAspectInterpretation(d);
+        tooltip.datum(d); // Store data
+        showTooltip(event, interpretation, tooltip, positionTooltip);
+        tooltipVisible = true;
+      }
     });
+
+  // Hide tooltip when clicking the chart background
+  d3.select('#chart-container svg').on('click', function() {
+    if (tooltipVisible) {
+      hideTooltip(tooltip);
+      tooltipVisible = false;
+    }
+  });
 }
 
 // Get planet interpretation
@@ -740,6 +825,53 @@ function setupEventListeners() {
   document.getElementById('toggle-aspects').addEventListener('change', function(e) {
     showAspectLines = e.target.checked;
     createChart();
+  });
+  
+  // Zoom controls
+  document.getElementById('zoom-in').addEventListener('click', function() {
+    const svg = d3.select('#chart-container svg');
+    const zoom = d3.zoomTransform(svg.node());
+    const newScale = Math.min(maxZoom, zoom.k * 1.2);
+    svg.transition().duration(300).call(
+      d3.zoom().transform,
+      d3.zoomIdentity.scale(newScale).translate(zoom.x, zoom.y)
+    );
+    
+    // Update zoom level display
+    const zoomLevelText = document.getElementById('zoom-level-text');
+    if (zoomLevelText) {
+      zoomLevelText.textContent = Math.round(newScale * 100) + '%';
+    }
+  });
+  
+  document.getElementById('zoom-out').addEventListener('click', function() {
+    const svg = d3.select('#chart-container svg');
+    const zoom = d3.zoomTransform(svg.node());
+    const newScale = Math.max(minZoom, zoom.k / 1.2);
+    svg.transition().duration(300).call(
+      d3.zoom().transform,
+      d3.zoomIdentity.scale(newScale).translate(zoom.x, zoom.y)
+    );
+    
+    // Update zoom level display
+    const zoomLevelText = document.getElementById('zoom-level-text');
+    if (zoomLevelText) {
+      zoomLevelText.textContent = Math.round(newScale * 100) + '%';
+    }
+  });
+  
+  document.getElementById('zoom-reset').addEventListener('click', function() {
+    const svg = d3.select('#chart-container svg');
+    svg.transition().duration(300).call(
+      d3.zoom().transform,
+      d3.zoomIdentity
+    );
+    
+    // Update zoom level display
+    const zoomLevelText = document.getElementById('zoom-level-text');
+    if (zoomLevelText) {
+      zoomLevelText.textContent = '100%';
+    }
   });
   
   // Update chart button

@@ -61,6 +61,14 @@
             max-width: 100%;
             height: auto;
             background: white;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        #chart-container svg {
+            display: block;
+            width: 100%;
+            height: auto;
         }
         
         .legend-symbol {
@@ -159,6 +167,55 @@
             cursor: not-allowed;
         }
         
+        .zoom-controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .zoom-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            min-width: 40px;
+            transition: background-color 0.2s;
+        }
+        
+        .zoom-btn:hover {
+            background: #45a049;
+        }
+        
+        .zoom-btn:active {
+            background: #3d8b40;
+        }
+        
+        #zoom-reset {
+            background: #2196F3;
+            font-size: 12px;
+            padding: 8px 8px;
+        }
+        
+        #zoom-reset:hover {
+            background: #1976D2;
+        }
+        
+        .zoom-level {
+            text-align: center;
+            margin-top: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        #zoom-level-text {
+            font-weight: bold;
+            color: #333;
+        }
+        
         /* Tooltip styles */
         .tooltip {
             position: absolute;
@@ -251,6 +308,20 @@
                 max-width: 250px;
                 font-size: 11px;
             }
+            
+            .zoom-controls {
+                justify-content: center;
+            }
+            
+            .zoom-btn {
+                padding: 10px 14px;
+                font-size: 18px;
+                min-width: 50px;
+            }
+            
+            #chart-container {
+                touch-action: pan-x pan-y pinch-zoom;
+            }
         }
     </style>
 </head>
@@ -307,6 +378,21 @@ MC,Leo,10°14'</textarea>
             <label><input type="checkbox" id="toggle-degree" checked> Show Degree Markers</label>
             <label><input type="checkbox" id="toggle-extended" checked> Show Extended Planets</label>
             <label><input type="checkbox" id="toggle-aspects" checked> Show Aspect Lines</label>
+            
+            <hr>
+            
+            <h2>Zoom Controls</h2>
+            <div class="zoom-controls">
+                <button id="zoom-in" class="zoom-btn">+</button>
+                <button id="zoom-out" class="zoom-btn">−</button>
+                <button id="zoom-reset" class="zoom-btn">Reset</button>
+            </div>
+            <div class="zoom-level">
+                <span id="zoom-level-text">100%</span>
+            </div>
+            <p style="font-size: 12px; margin-top: 8px; color: #666;">
+                <strong>Mobile:</strong> Pinch to zoom • <strong>Desktop:</strong> Mouse wheel • <strong>All:</strong> Double-click to reset
+            </p>
             
             <hr>
             
@@ -369,9 +455,7 @@ MC,Leo,10°14'</textarea>
             <p><b>Update</b> the chart data in the textarea above to see different charts.</p>
         </div>
     </div>
-    
-    <div id="tooltip" class="tooltip"></div>
-    
+        
     <script src="../scripts/interpretations.js"></script>
     <script src="d3chart.js"></script>
 </body>
