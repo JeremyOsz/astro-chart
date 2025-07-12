@@ -233,6 +233,35 @@ function calculateAspects() {
   }
 }
 
+// Adjusts planet degrees visually to avoid overlaps
+function calculateVisualDegrees(planetsToDraw) {
+  // Use clustering logic to find groups of planets that are close together
+  let clusters = findClusters(planetsToDraw);
+  clusters.forEach(cluster => {
+    const clusterSize = cluster.length;
+    if (clusterSize === 1) {
+      // If a planet is not in a cluster, its visual position is its true position
+      const p = cluster[0];
+      const originalPlanet = chartData.find(cp => cp.planet === p.planet);
+      if (originalPlanet) {
+        originalPlanet.visualDegree = originalPlanet.angle;
+      }
+    } else if (clusterSize > 1) {
+      // If planets are clustered, spread them out visually around their average position
+      const totalArc = (clusterSize - 1) * 9; // Visual separation arc
+      const avgAngle = cluster.reduce((sum, p) => sum + p.angle, 0) / clusterSize;
+      const startAngle = avgAngle - totalArc / 2;
+      cluster.forEach((p, i) => {
+        const originalPlanet = chartData.find(cp => cp.planet === p.planet);
+        if (originalPlanet) {
+          originalPlanet.visualDegree = startAngle + i * (totalArc / (clusterSize - 1));
+        }
+      });
+    }
+  });
+}
+
+
 // Create the D3 chart
 function createChart() {
   const container = d3.select('#chart-container');
@@ -249,19 +278,28 @@ function createChart() {
   const asc = chartData.find(p => p.planet === 'ASC');
   const ascAngle = asc ? asc.angle : 0;
 
+  // Determine which planets to draw based on user settings
+  let planetsToDraw = chartData.filter(p => planetSymbols[p.planet] && !['ASC', 'MC', 'DSC', 'IC'].includes(p.planet));
+  if (!showExtendedPlanets) {
+    planetsToDraw = planetsToDraw.filter(p => !extendedPlanetNames.includes(p.planet));
+  }
+  
+  // Calculate visual degrees for clustering BEFORE drawing anything
+  calculateVisualDegrees(planetsToDraw);
+
   // Draw zodiac wheel
   drawZodiacWheel(g, ascAngle);
   
   // Draw house lines and numbers
   drawHouseLinesAndNumbers(g, ascAngle);
   
-  // Draw aspects
+  // Draw aspects (now using the final visual degrees)
   if (showAspectLines) {
     drawAspects(g, ascAngle);
   }
   
-  // Draw planets
-  drawPlanets(g, ascAngle);
+  // Draw planets (now using the final visual degrees)
+  drawPlanets(g, ascAngle, planetsToDraw);
   
   // Add interactivity
   addInteractivity(g, ascAngle);
@@ -410,66 +448,75 @@ function drawAspects(g, ascAngle) {
     .attr('fill', 'none')
     .attr('stroke', '#eee');
 
-  aspects.forEach(aspect => {
-    const p1 = chartData.find(p => p.planet === aspect.planet1.planet);
-    const p2 = chartData.find(p => p.planet === aspect.planet2.planet);
+  // DATA JOIN for aspect lines
+  const aspectSelection = g.selectAll('.aspect-line')
+    .data(aspects, d => `${d.planet1.planet}-${d.aspect}-${d.planet2.planet}`);
 
-    if (!p1 || !p2) return;
+  aspectSelection.enter()
+    .append('line')
+    .attr('class', 'aspect-line')
+    .attr('x1', d => {
+      const angle1 = (180 - (d.planet1.visualDegree - ascAngle)) * Math.PI / 180;
+      return Math.cos(angle1) * ASPECT_HUB_RADIUS;
+    })
+    .attr('y1', d => {
+      const angle1 = (180 - (d.planet1.visualDegree - ascAngle)) * Math.PI / 180;
+      return Math.sin(angle1) * ASPECT_HUB_RADIUS;
+    })
+    .attr('x2', d => {
+      const angle2 = (180 - (d.planet2.visualDegree - ascAngle)) * Math.PI / 180;
+      return Math.cos(angle2) * ASPECT_HUB_RADIUS;
+    })
+    .attr('y2', d => {
+      const angle2 = (180 - (d.planet2.visualDegree - ascAngle)) * Math.PI / 180;
+      return Math.sin(angle2) * ASPECT_HUB_RADIUS;
+    })
+    .attr('stroke', d => d.color)
+    .attr('stroke-width', d => d.weight)
+    .attr('stroke-dasharray', d => d.style === 'dotted' ? '1,3' : d.style === 'dashed' ? '4,4' : 'none');
 
-    const angle1 = (180 - (p1.visualDegree - ascAngle)) * Math.PI / 180;
-    const angle2 = (180 - (p2.visualDegree - ascAngle)) * Math.PI / 180;
-    
-    const x1 = Math.cos(angle1) * ASPECT_HUB_RADIUS;
-    const y1 = Math.sin(angle1) * ASPECT_HUB_RADIUS;
-    const x2 = Math.cos(angle2) * ASPECT_HUB_RADIUS;
-    const y2 = Math.sin(angle2) * ASPECT_HUB_RADIUS;
-    
-    const line = g.append('line')
-      .attr('x1', x1).attr('y1', y1)
-      .attr('x2', x2).attr('y2', y2)
-      .attr('stroke', aspect.color)
-      .attr('stroke-width', aspect.weight)
-      .attr('stroke-dasharray', aspect.style === 'dotted' ? '1,3' : aspect.style === 'dashed' ? '4,4' : 'none');
-    
-    line.datum(aspect);
-  });
+  aspectSelection.exit().remove();
 }
 
 // Draw planets
-function drawPlanets(g, ascAngle) {
-  let planetsToDraw = chartData.filter(p => planetSymbols[p.planet] && !['ASC', 'MC', 'DSC', 'IC'].includes(p.planet));
-  if (!showExtendedPlanets) {
-    planetsToDraw = planetsToDraw.filter(p => !extendedPlanetNames.includes(p.planet));
-  }
+function drawPlanets(g, ascAngle, planetsToDraw) {
+  // NOTE: Clustering logic has been moved to a separate function (`calculateVisualDegrees`)
+  // and is called from `createChart` to ensure visual degrees are set *before* aspects are drawn.
 
-  // Use p5's clustering logic
-  let clusters = findClusters(planetsToDraw);
-  clusters.forEach(cluster => {
-    const clusterSize = cluster.length;
-    if (clusterSize > 1) {
-      let totalArc = (clusterSize - 1) * 9;
-      let avgAngle = cluster.reduce((sum, p) => sum + p.angle, 0) / clusterSize;
-      let startAngle = avgAngle - totalArc / 2;
-      cluster.forEach((p, i) => {
-        const originalPlanet = chartData.find(cp => cp.planet === p.planet);
-        if(originalPlanet) {
-          originalPlanet.visualDegree = startAngle + i * (totalArc / (clusterSize - 1));
-        }
-      });
-    }
-  });
+  // DATA JOIN for planet glyphs
+  const planetSelection = g.selectAll('.planet-glyph')
+    .data(planetsToDraw, d => d.planet);
 
+  planetSelection.enter()
+    .append('text')
+    .attr('class', 'planet-glyph')
+    .attr('x', d => {
+      const displayAngle = (180 - (d.visualDegree - ascAngle));
+      const angleRad = displayAngle * Math.PI / 180;
+      return Math.cos(angleRad) * PLANET_RING_RADIUS;
+    })
+    .attr('y', d => {
+      const displayAngle = (180 - (d.visualDegree - ascAngle));
+      const angleRad = displayAngle * Math.PI / 180;
+      return Math.sin(angleRad) * PLANET_RING_RADIUS;
+    })
+    .attr('text-anchor', 'middle')
+    .attr('dominant-baseline', 'middle')
+    .attr('font-family', 'Noto Sans Symbols, Arial, sans-serif')
+    .attr('font-size', isMobile ? 22 : 28)
+    .attr('fill', d => d.isRetrograde ? '#e53935' : '#000')
+    .text(d => planetSymbols[d.planet] || d.planet);
+
+  planetSelection.exit().remove();
+
+  // Notches and labels (not interactive, so can remain as before)
   planetsToDraw.forEach(p => {
     const displayAngle = (180 - (p.visualDegree - ascAngle));
     const angleRad = displayAngle * Math.PI / 180;
 
-    const iconX = Math.cos(angleRad) * PLANET_RING_RADIUS;
-    const iconY = Math.sin(angleRad) * PLANET_RING_RADIUS;
-    
-    // Use a separate radius for the labels to prevent overlap
     const labelX = Math.cos(angleRad) * LABEL_RADIUS;
     const labelY = Math.sin(angleRad) * LABEL_RADIUS;
-    
+
     // Draw notch from outer zodiac to just before planet icon
     const notchStartX = Math.cos(angleRad) * (ZODIAC_INNER_RADIUS);
     const notchStartY = Math.sin(angleRad) * (ZODIAC_INNER_RADIUS);
@@ -480,49 +527,33 @@ function drawPlanets(g, ascAngle) {
       .attr('x2', notchEndX).attr('y2', notchEndY)
       .attr('stroke', '#000').attr('stroke-width', 2);
 
-    // Draw planet glyph
-    const symbol = g.append('text')
-      .attr('x', iconX).attr('y', iconY)
-      .attr('text-anchor', 'middle')
-      .attr('dominant-baseline', 'middle')
-      .attr('font-family', 'Noto Sans Symbols, Arial, sans-serif')
-      .attr('font-size', isMobile ? 22 : 28)
-      .attr('fill', p.isRetrograde ? '#e53935' : '#000')
-      .text(planetSymbols[p.planet] || p.planet);
-    
-    symbol.datum(p);
-    
     // Draw radial label block at its own radius
     const labelGroup = g.append('g')
       .attr('transform', `translate(${labelX}, ${labelY}) rotate(${displayAngle + 90})`);
 
-    // Replicating p5's label layout
     labelGroup.append('text')
       .attr('text-anchor', 'middle')
-      .attr('y', -10) // Degree
+      .attr('y', -10)
       .attr('font-size', isMobile ? 11 : 12)
       .attr('fill', '#444')
       .text(p.degree);
-      
     labelGroup.append('text')
       .attr('text-anchor', 'middle')
-      .attr('y', 4) // Sign Glyph
+      .attr('y', 4)
       .attr('font-family', 'Noto Sans Symbols, Arial, sans-serif')
       .attr('font-size', isMobile ? 11 : 12)
       .attr('fill', zodiacColors[p.sign])
       .text(zodiacSymbols[p.sign]);
-
     labelGroup.append('text')
       .attr('text-anchor', 'middle')
-      .attr('y', 18) // Minute
+      .attr('y', 18)
       .attr('font-size', isMobile ? 10 : 11)
       .attr('fill', '#777')
       .text(p.minute.toString().padStart(2, '0'));
-
     if (p.isRetrograde) {
       labelGroup.append('text')
         .attr('text-anchor', 'start')
-        .attr('x', 12) // Positioned to the right of the minute
+        .attr('x', 12)
         .attr('y', 18)
         .attr('font-size', isMobile ? 9 : 10)
         .attr('fill', '#e53935')
@@ -548,6 +579,29 @@ function findClusters(planets) {
 
 // Add interactivity
 function addInteractivity(g, ascAngle) {
+  // Ensure tooltip style is present
+  if (!document.getElementById('astro-tooltip-style')) {
+    const style = document.createElement('style');
+    style.id = 'astro-tooltip-style';
+    style.innerHTML = `
+      .tooltip {
+        background: #fffbe8;
+        color: #222;
+        border: 1px solid #aaa;
+        border-radius: 6px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        padding: 12px 16px;
+        font-size: 15px;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        pointer-events: none;
+        max-width: 340px;
+        line-height: 1.5;
+        transition: opacity 0.15s;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   // Create tooltip if it doesn't exist
   let tooltip = d3.select('.tooltip');
   if (tooltip.empty()) {
@@ -557,19 +611,44 @@ function addInteractivity(g, ascAngle) {
       .style('position', 'absolute')
       .style('z-index', '1000');
   }
-  
+
+  // Helper for positioning tooltip within viewport
+  function positionTooltip(event, tooltip) {
+    const padding = 12;
+    const tooltipNode = tooltip.node();
+    if (!tooltipNode) return;
+    const { innerWidth, innerHeight } = window;
+    const rect = tooltipNode.getBoundingClientRect();
+    let left = event.pageX + 16;
+    let top = event.pageY - 10;
+    if (left + rect.width + padding > innerWidth) {
+      left = innerWidth - rect.width - padding;
+    }
+    if (top + rect.height + padding > innerHeight) {
+      top = innerHeight - rect.height - padding;
+    }
+    if (top < padding) top = padding;
+    tooltip.style('left', left + 'px').style('top', top + 'px');
+  }
+
   // Planet tooltips
-  g.selectAll('text').filter(d => d && d.planet).on('mouseover', function(event, d) {
+  g.selectAll('.planet-glyph').on('mouseover', function(event, d) {
+    console.log('Planet mouseover', d);
     const interpretation = getPlanetInterpretation(d);
-    showTooltip(event, interpretation, tooltip);
+    showTooltip(event, interpretation, tooltip, positionTooltip);
+  }).on('mousemove', function(event) {
+    positionTooltip(event, tooltip);
   }).on('mouseout', function() {
     hideTooltip(tooltip);
   });
-  
+
   // Aspect tooltips
-  g.selectAll('line').filter(d => d && d.aspect).on('mouseover', function(event, d) {
+  g.selectAll('.aspect-line').on('mouseover', function(event, d) {
+    console.log('Aspect mouseover', d);
     const interpretation = getAspectInterpretation(d);
-    showTooltip(event, interpretation, tooltip);
+    showTooltip(event, interpretation, tooltip, positionTooltip);
+  }).on('mousemove', function(event) {
+    positionTooltip(event, tooltip);
   }).on('mouseout', function() {
     hideTooltip(tooltip);
   });
@@ -626,11 +705,10 @@ function getAspectInterpretation(aspect) {
 }
 
 // Show tooltip
-function showTooltip(event, content, tooltip) {
+function showTooltip(event, content, tooltip, positionFn) {
   tooltip.style('opacity', 1)
-    .html(content)
-    .style('left', (event.pageX + 10) + 'px')
-    .style('top', (event.pageY - 10) + 'px');
+    .html(content);
+  if (positionFn) positionFn(event, tooltip);
 }
 
 // Hide tooltip
