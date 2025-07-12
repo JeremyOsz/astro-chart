@@ -787,21 +787,26 @@ function getPlanetInterpretation(planet) {
   const sign = planet.sign;
   const degree = planet.degree;
   const minute = planet.minute.toString().padStart(2, '0');
-  
   let interpretation = `<strong>${planet.planet} in ${sign}</strong><br>`;
   interpretation += `Degree: ${degree}°${minute}'<br><br>`;
-  
-  // Add basic planet interpretation if available
-  if (interpretations.planets && interpretations.planets[planet.planet]) {
-    interpretation += interpretations.planets[planet.planet];
+
+  // Use planetInSign interpretation if available
+  if (
+    interpretations.planetInSign &&
+    interpretations.planetInSign[planet.planet] &&
+    interpretations.planetInSign[planet.planet][sign]
+  ) {
+    interpretation += interpretations.planetInSign[planet.planet][sign];
+  } else if (interpretations.planets && interpretations.planets[planet.planet]) {
+    interpretation += interpretations.planets[planet.planet].description;
   } else {
-    interpretation += `${planet.planet} represents core energies and themes in your chart.`;
+    interpretation += `${planet.planet} in ${sign}.`;
   }
-  
+
   if (planet.isRetrograde) {
     interpretation += `<br><br><em>Retrograde: This planet's energy is internalized and may manifest differently than usual.</em>`;
   }
-  
+
   return interpretation;
 }
 
