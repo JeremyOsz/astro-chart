@@ -281,19 +281,19 @@ function drawZodiacWheel(g, ascAngle) {
 
   // Zodiac sign backgrounds
   zodiacSigns.forEach((sign, index) => {
-    const angle = index * 30;
-    const startAngle = angle - 15;
-    const endAngle = angle + 15;
+    // Center each sign region based on the ASC
+    // The region for each sign starts at (signStart) and ends at (signEnd)
+    const signStart = (180 - ((index * 30) - ascAngle)) * Math.PI / 180;
+    const signEnd = (180 - (((index + 1) * 30) - ascAngle)) * Math.PI / 180;
     const arc = d3.arc()
       .innerRadius(ZODIAC_INNER_RADIUS)
       .outerRadius(ZODIAC_OUTER_RADIUS)
-      .startAngle(startAngle * Math.PI / 180)
-      .endAngle(endAngle * Math.PI / 180);
+      .startAngle(signStart)
+      .endAngle(signEnd);
     g.append('path')
       .attr('d', arc)
       .attr('fill', zodiacColors[sign])
-      .attr('opacity', 0.1)
-      .attr('transform', `rotate(${-ascAngle + 180})`);
+      .attr('opacity', 0.1);
   });
 
   // Degree tick marks
