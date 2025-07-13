@@ -950,10 +950,13 @@ function getZodiacSignInterpretation(sign, symbolCoords) {
 
   interpretation += getZodiacSignDescription(sign);
 
-  // Add house interpretation
-  const houseKey = `${house}${getOrdinalSuffix(house)}`;
-  if (interpretations.houses && interpretations.houses[houseKey]) {
-    interpretation += `<br><strong>House ${house} Meaning:</strong> ${interpretations.houses[houseKey]}`;
+  // Add sign-in-house interpretation
+  if (
+    interpretations.signInHouse &&
+    interpretations.signInHouse[sign] &&
+    interpretations.signInHouse[sign][String(house)]
+  ) {
+    interpretation += `<br><strong>${sign} in House ${house}:</strong> ${interpretations.signInHouse[sign][String(house)]}`;
   }
 
   return interpretation;
